@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <iostream>
 #include <list>
 #include <string>
@@ -15,17 +16,13 @@
 
 class TransportCatalogue {
  public:
-  struct Bus;
   struct Stop {
     std::string_view name;
     Coordinates coordinates;
-    std::vector<std::pair<std::string_view, int>> stops;
-
   };
   struct Bus {
     std::string_view name;
     std::vector<Stop*> route;
-    std::set<std::string_view> unique_stops;
   };
 
   struct BusInfo {
@@ -36,20 +33,22 @@ class TransportCatalogue {
   };
   using PairStop = std::pair<Stop*, Stop*>;
   struct Hasher {
-    size_t operator()(const PairStop& pair) const {
+    size_t operator()( const PairStop& pair) const {
       return 37* std::hash<std::string_view>{}(pair.first->name) + std::hash<std::string_view>{}(pair.second->name);
     }
   };
   void AddStop(const Stop& stop);
-
   Stop* FindStop(std::string_view query) const;
 
   void AddBus(std::string_view name, const std::vector<std::string_view>& stops);
 
   Bus* FindBus(std::string_view query) const;
 
-  BusInfo GetBusInfo(const Bus& bus) ;
+  BusInfo GetBusInfo(const Bus& bus);
   std::set<std::string_view> GetStopInfo(const Stop& stop);
+
+  void AddDistanceInfo(std::string_view stop1, std::string_view stop2, int dist);
+
 
  private:
 
@@ -60,10 +59,12 @@ class TransportCatalogue {
   std::list<Bus> all_buses_;
   std::unordered_map<std::string_view , Bus*> bus_name_to_bus;
   std::unordered_map<std::string_view , std::set<std::string_view>> stop_to_buses;
+
   std::unordered_map<PairStop, int, Hasher> distances_;
 
-  void ParseStops(const Stop& stop);
   int ComputeRealDist(Stop* stop1, Stop* stop2) const;
 
+  size_t UniqueStops(const std::vector<Stop*>& stops);
 
+  
 };
