@@ -1,5 +1,18 @@
 #include "input_reader.h"
 namespace input {
+
+void Parser::LoadInputQueries(std::istream& in, TransportCatalogue& catalogue) {
+  int buses_quantity;
+  in >> buses_quantity;
+  in.ignore();
+  std::string query;
+  for (int i = 0; i < buses_quantity; ++i) {
+    std::getline(in, query);
+    ParseQuery(query);
+  }
+  ParseAllQueries(catalogue);
+  ParseDistances(catalogue);
+}
 void Parser::ParseQuery(std::string_view query) {
   if (query[0] == 'S') {
     deque_queries.emplace_front(query);
@@ -52,8 +65,7 @@ void Parser::ParseStopQuery(std::string_view query, TransportCatalogue& catalogu
   double lon = std::stod(std::string(query.substr(pos, commaPos - pos)));
   pos = commaPos + 1;
   if (commaPos == std::string_view::npos) {
-    static std::vector<std::pair<std::string_view, int>> empty;
-    catalogue.AddStop({stopName, {lat, lon}, empty});
+    catalogue.AddStop({stopName, {lat, lon}});
     return;
   }
   // Читаем остановки и расстояния
@@ -75,9 +87,9 @@ void Parser::ParseStopQuery(std::string_view query, TransportCatalogue& catalogu
     pos += 3;
     std::string_view stop_name = query.substr(pos, commaPos - pos);
     pos = commaPos;
-    stops.emplace_back(stop_name, dis);
+    dist[stopName].emplace_back(stop_name, dis);
   }
-  catalogue.AddStop({stopName, {lat, lon}, stops});
+  catalogue.AddStop({stopName, {lat, lon}});
 
 }
 void Parser::ParseCicleBusQuery(std::string_view query, TransportCatalogue& catalogue) {
@@ -116,6 +128,13 @@ void Parser::ParseAllQueries(TransportCatalogue& catalogue) {
         ParseCicleBusQuery(query, catalogue);
 
       }
+    }
+  }
+}
+void Parser::ParseDistances(TransportCatalogue& catalogue) {
+  for (auto& [stop_name1, stops] : dist) {
+    for(auto [other_stop_name, distance]: stops) {
+      catalogue.AddDistanceInfo(stop_name1, other_stop_name, distance);
     }
   }
 }
