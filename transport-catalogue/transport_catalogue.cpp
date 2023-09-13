@@ -1,12 +1,13 @@
 #include "transport_catalogue.h"
 
-void TransportCatalogue::AddBus(std::string_view name, const std::vector<std::string_view>& stops) {
+void TransportCatalogue::AddBus(std::string_view name, const std::vector<std::string_view>& stops, bool is_round) {
   std::vector<Stop*> tmp;
   for (auto stop : stops) {
     tmp.push_back(stop_name_to_stop.at(stop));
     stop_to_buses[stop].insert( (name));
   }
-  all_buses_.push_back({name, tmp});
+
+  all_buses_.push_back({name, tmp, is_round});
   bus_name_to_bus[name] = &all_buses_.back();
 }
 void TransportCatalogue::AddStop(const Stop& stop) {
@@ -64,6 +65,14 @@ size_t TransportCatalogue::UniqueStops(const std::vector<Stop*>& stops) {
 }
 
 void TransportCatalogue::AddDistanceInfo(std::string_view stop1, std::string_view stop2, int dist) {
-  distances_[{stop_name_to_stop.at(stop1), stop_name_to_stop.at(stop2)}] = dist;
+  if(!distances_.count({stop_name_to_stop.at(stop1), stop_name_to_stop.at(stop2)})) {
+    distances_[{stop_name_to_stop.at(stop1), stop_name_to_stop.at(stop2)}] = dist;
+  }
 }
-
+std::set<std::string_view > TransportCatalogue::GetAllBuses() const{
+  std::set<std::string_view> ans;
+  for (const auto& bus : all_buses_) {
+    ans.insert(bus.name);
+  }
+  return ans;
+}
