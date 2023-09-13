@@ -18,11 +18,12 @@ class TransportCatalogue {
  public:
   struct Stop {
     std::string_view name;
-    Coordinates coordinates;
+    geo::Coordinates coordinates;
   };
   struct Bus {
     std::string_view name;
     std::vector<Stop*> route;
+    bool is_roundtrip;
   };
 
   struct BusInfo {
@@ -40,7 +41,7 @@ class TransportCatalogue {
   void AddStop(const Stop& stop);
   Stop* FindStop(std::string_view query) const;
 
-  void AddBus(std::string_view name, const std::vector<std::string_view>& stops);
+  void AddBus(std::string_view name, const std::vector<std::string_view>& stops, bool is_round);
 
   Bus* FindBus(std::string_view query) const;
 
@@ -50,11 +51,12 @@ class TransportCatalogue {
   void AddDistanceInfo(std::string_view stop1, std::string_view stop2, int dist);
 
 
+  std::set<std::string_view > GetAllBuses() const;
+
  private:
 
-
   std::list<Stop> all_stops_;
-  std::unordered_map<std::string_view, Stop*> stop_name_to_stop;
+  std::unordered_map<std::string_view , Stop*> stop_name_to_stop;
 
   std::list<Bus> all_buses_;
   std::unordered_map<std::string_view , Bus*> bus_name_to_bus;
@@ -66,5 +68,4 @@ class TransportCatalogue {
 
   size_t UniqueStops(const std::vector<Stop*>& stops);
 
-  
 };
