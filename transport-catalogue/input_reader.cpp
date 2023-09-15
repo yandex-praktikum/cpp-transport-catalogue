@@ -111,7 +111,7 @@ void Parser::ParseCicleBusQuery(std::string_view query, TransportCatalogue& cata
     stopPos = stopsStr.find(" - ", startPos);
   }
   stops.push_back(stopsStr.substr(startPos));
-  for (int64_t i = static_cast<int64_t>(stops.size()) - 2; i != -1; --i) {
+  for (int64_t i = static_cast<int64_t>(stops.size()) - 2; i > -1; --i) {
     stops.push_back(stops[i]);
   }
   catalogue.AddBus(name, stops);
