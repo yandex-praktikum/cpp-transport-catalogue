@@ -53,7 +53,7 @@ void Parser::ParseCicleBusQuery(const json::Dict& bus, TransportCatalogue& catal
     all_queries.push_back(stop.AsString());
     bus_stops.push_back(all_queries.back());
   }
-  for (int64_t i = static_cast<int64_t>(bus_stops.size()) - 2; i != -1; --i) {
+  for (int64_t i = static_cast<int64_t>(bus_stops.size()) - 2; i > -1; --i) {
     bus_stops.push_back(bus_stops[i]);
   }
   catalogue.AddBus(name, bus_stops, false);
