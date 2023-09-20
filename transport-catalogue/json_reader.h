@@ -10,7 +10,7 @@
 
 #include "map_renderer.h"
 #include "transport_catalogue.h"
-#include "json.h"
+#include "json_builder.h"
 
 namespace json_input {
 
@@ -36,14 +36,14 @@ class Parser {
 }
 
 namespace json_output {
-void WriteBus(const json::Dict & bus,  TransportCatalogue& catalogue, json::Array& ans);
+void WriteBus(const json::Dict & bus,  TransportCatalogue& catalogue, json::Builder& ans);
 
 
-void WriteStop(const json::Dict& stop, TransportCatalogue& catalogue,json::Array& ans);
+void WriteStop(const json::Dict& stop, TransportCatalogue& catalogue,json::Builder& ans);
 
-void WriteMap(const json::Dict& stop, TransportCatalogue& catalogue, json::Array& ans, const json::Dict& settings);
+void WriteMap(const json::Dict& stop, TransportCatalogue& catalogue, json::Builder& ans, const json::Dict& settings);
 
-json::Array LoadOutputQueries(const json::Array& list,  TransportCatalogue& catalogue, const json::Dict& settings);
+json::Node LoadOutputQueries(const json::Array& list,  TransportCatalogue& catalogue, const json::Dict& settings);
 
 } // namespace json_output
 
