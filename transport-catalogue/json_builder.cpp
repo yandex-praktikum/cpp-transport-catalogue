@@ -7,19 +7,19 @@ json::DictItemContext json::Builder::StartDict() {
   if(nodes_stacks_.empty()) {
     throw std::logic_error("json have been built");
   }
-  if(nodes_stacks_.back()->IsArray()) {
+  if(nodes_stacks_.back()->IsArray()) { // добавление в массив словаря
     std::get<json::Array>(nodes_stacks_.back()->GetValue()).emplace_back(empty_dict);
     nodes_stacks_.push_back(&std::get<Array>(nodes_stacks_.back()->GetValue()).back());
     return DictItemContext(*this);
-  } else if(nodes_stacks_.back()->IsDict()) {
-    if(!cur_key.has_value()) {
+  } else if(nodes_stacks_.back()->IsDict()) { // добавление в словарь в качестве значения другой словарь
+    if(keys.empty()) {
       throw std::logic_error("dict in dict must be a value");
     }
-    std::get<Dict>(nodes_stacks_.back()->GetValue())[cur_key.value()] = empty_dict;
-    nodes_stacks_.push_back(&std::get<Dict>(nodes_stacks_.back()->GetValue()).at(cur_key.value()));
-    cur_key.reset();
+    std::get<Dict>(nodes_stacks_.back()->GetValue())[keys.back()] = empty_dict;
+    nodes_stacks_.push_back(&std::get<Dict>(nodes_stacks_.back()->GetValue()).at(keys.back()));
+    keys.pop_back();
     return DictItemContext(*this);
-  } else if (nodes_stacks_.back()->IsNull()) {
+  } else if (nodes_stacks_.back()->IsNull()) { // основа json - словарь
     *nodes_stacks_.back() = empty_dict;
     return DictItemContext(*this);
 
@@ -32,19 +32,19 @@ json::ArrayItemCotext json::Builder::StartArray() {
   if (nodes_stacks_.empty()) {
 
     throw std::logic_error("no matching to call start array");
-  } else if (nodes_stacks_.back()->IsDict()) {
-    if(!cur_key.has_value()) {
+  } else if (nodes_stacks_.back()->IsDict()) { // добавление в качестве значения словаря -  массив
+    if(keys.empty()) {
       throw std::logic_error("dict in dict must be a value");
     }
-    std::get<Dict>(nodes_stacks_.back()->GetValue())[cur_key.value()] = empty_array;
-    nodes_stacks_.push_back(&std::get<Dict>(nodes_stacks_.back()->GetValue()).at(cur_key.value()));
-    cur_key.reset();
+    std::get<Dict>(nodes_stacks_.back()->GetValue())[keys.back()] = empty_array;
+    nodes_stacks_.push_back(&std::get<Dict>(nodes_stacks_.back()->GetValue()).at(keys.back()));
+    keys.pop_back();
     return ArrayItemCotext(*this);
-  } else if(nodes_stacks_.back()->IsArray()) {
+  } else if(nodes_stacks_.back()->IsArray()) { // вложенный массив
     std::get<Array>(nodes_stacks_.back()->GetValue()).emplace_back(empty_array);
     nodes_stacks_.push_back(&std::get<Array>(nodes_stacks_.back()->GetValue()).back());
     return ArrayItemCotext(*this);
-  } else if(root_.IsNull() && nodes_stacks_.back() == &root_){
+  } else if(root_.IsNull() && nodes_stacks_.back() == &root_){ // основа json - массив
     *nodes_stacks_.back() = empty_array;
     return ArrayItemCotext(*this);
   }
@@ -57,8 +57,8 @@ json::KeyItemContext json::Builder::Key(std::string key) {
     throw std::logic_error("there must be dict");
   }
   if (nodes_stacks_.back()->IsDict()) {
-    if(!cur_key.has_value()) {
-      cur_key = std::move(key);
+    if(keys.empty()) {                       // нет текущего ключа
+      keys.push_back(std::move(key));
     }
     else {
       throw std::logic_error("two keys in row");
@@ -70,15 +70,15 @@ json::KeyItemContext json::Builder::Key(std::string key) {
 }
 
 json::BaseContext json::Builder::Value(Node val) {
-  if(nodes_stacks_.size() == 1 && nodes_stacks_.back()->IsNull()) {
+  if(nodes_stacks_.size() == 1 && nodes_stacks_.back()->IsNull()) { // основа json одно value. Изменять его нельзя
     nodes_stacks_.back() = &val;
     root_ = val;
     return *this;
   }
   else if(nodes_stacks_.back()->IsDict()){
-    if(cur_key.has_value()) {
-      std::get<json::Dict >(nodes_stacks_.back()->GetValue()).emplace(std::move(cur_key.value()), val);
-      cur_key.reset();
+    if(!keys.empty()) {
+      std::get<json::Dict >(nodes_stacks_.back()->GetValue()).emplace(std::move(keys.back()), val);
+      keys.pop_back();
       return *this;
     }
   }
