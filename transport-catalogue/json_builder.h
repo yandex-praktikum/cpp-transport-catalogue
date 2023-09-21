@@ -1,3 +1,4 @@
+#include <optional>
 #include <utility>
 
 #include "json.h"
@@ -23,7 +24,7 @@ class Builder {
  private:
   Node root_; // корневая нода, в которой хранится построенный json. По умолчанию добавляется в стек
   std::vector<Node*> nodes_stacks_; // стек для отслеживания состояний json. Если размер равен нулю, значит json уже построен
-  std::vector<std::string> keys; // стек для хранения ключей для словарей. 
+  std::vector<std::string> keys; // стек для хранения ключей для словарей.
 };
 
 class BaseContext {
