@@ -1,71 +1,85 @@
-#pragma once
-#include <algorithm>
-#include <iostream>
-#include <list>
-#include <string>
-#include <string_view>
-#include <vector>
-#include <unordered_map>
-#include <unordered_set>
-#include <set>
-#include <variant>
-#include <map>
-#include "geo.h"
+#include <optional>
+#include <utility>
 
+#include "json.h"
 
-
-class TransportCatalogue {
+namespace json {
+class DictItemContext; 
+class ArrayItemCotext;
+class KeyItemContext;
+class BaseContext;
+class Builder {
  public:
-  struct Stop {
-    std::string_view name;
-    geo::Coordinates coordinates;
-  };
-  struct Bus {
-    std::string_view name;
-    std::vector<Stop*> route;
-    bool is_roundtrip;
-  };
+  Builder() {
+    nodes_stacks_.push_back(&root_);
+  }
 
-  struct BusInfo {
-    size_t stops_on_route;
-    size_t unique_stops;
-    int real_lenght;
-    double route_length;
-  };
-  using PairStop = std::pair<Stop*, Stop*>;
-  struct Hasher {
-    size_t operator()( const PairStop& pair) const {
-      return 37* std::hash<std::string_view>{}(pair.first->name) + std::hash<std::string_view>{}(pair.second->name);
-    }
-  };
-  void AddStop(const Stop& stop);
-  Stop* FindStop(std::string_view query) const;
-
-  void AddBus(std::string_view name, const std::vector<std::string_view>& stops, bool is_round);
-
-  Bus* FindBus(std::string_view query) const;
-
-  BusInfo GetBusInfo(const Bus& bus);
-  std::set<std::string_view> GetStopInfo(const Stop& stop);
-
-  void AddDistanceInfo(std::string_view stop1, std::string_view stop2, int dist);
-
-
-  std::set<std::string_view > GetAllBuses() const;
+  DictItemContext StartDict();
+  BaseContext EndDict();
+  KeyItemContext Key(std::string key);
+  BaseContext Value(Node val);
+  ArrayItemCotext StartArray();
+  BaseContext EndArray();
+  Node Build();
 
  private:
+  Node root_;
+  std::vector<Node*> nodes_stacks_;
+  std::optional<std::string> cur_key;
+};
 
-  std::list<Stop> all_stops_;
-  std::unordered_map<std::string_view , Stop*> stop_name_to_stop;
+class BaseContext {
+ public:
+  BaseContext(Builder& builder) : builder_(builder){}
+  Node Build();
+  KeyItemContext Key(std::string key);
+  BaseContext Value(Node value);
+  DictItemContext StartDict();
+  ArrayItemCotext StartArray();
+  BaseContext EndDict();
+  BaseContext EndArray();
+  Builder& builder_;
+};
 
-  std::list<Bus> all_buses_;
-  std::unordered_map<std::string_view , Bus*> bus_name_to_bus;
-  std::unordered_map<std::string_view , std::set<std::string_view>> stop_to_buses;
-
-  std::unordered_map<PairStop, int, Hasher> distances_;
-
-  int ComputeRealDist(Stop* stop1, Stop* stop2) const;
-
-  size_t UniqueStops(const std::vector<Stop*>& stops);
+class DictItemContext :  public BaseContext {
+ public:
+  explicit DictItemContext(Builder& base): BaseContext(base){}
+  Node Build() = delete;
+  BaseContext Value(Node value) = delete;
+  DictItemContext StartDict() = delete;
+  ArrayItemCotext StartArray() = delete;
+  BaseContext EndArray() = delete;
 
 };
+
+class ArrayItemCotext: public BaseContext {
+ public:
+  explicit ArrayItemCotext(Builder& base) : BaseContext(base){}
+  Node Build() = delete;
+  KeyItemContext Key(std::string key) = delete;
+  BaseContext EndDict() = delete;
+  ArrayItemCotext Value(Node value) {
+    builder_.Value(std::move(value));
+    return ArrayItemCotext(builder_);
+  }
+
+};
+
+class KeyItemContext: public BaseContext {
+ public:
+  explicit KeyItemContext(Builder& base) : BaseContext(base){}
+
+  Node Build() = delete;
+  KeyItemContext Key(std::string key) = delete;
+  BaseContext EndDict() = delete;
+  BaseContext EndArray() = delete;
+
+  DictItemContext Value(Node value) {
+    builder_.Value(std::move(value));
+    return DictItemContext(builder_);
+  }
+};
+
+
+
+} // namespace json
