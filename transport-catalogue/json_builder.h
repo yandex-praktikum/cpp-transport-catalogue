@@ -1,11 +1,9 @@
-#include <optional>
 #include <utility>
 
 #include "json.h"
 
 namespace json {
-class DictItemContext; 
-class ArrayItemCotext;
+class DictItemContext; class ArrayItemCotext;
 class KeyItemContext;
 class BaseContext;
 class Builder {
@@ -23,9 +21,9 @@ class Builder {
   Node Build();
 
  private:
-  Node root_;
-  std::vector<Node*> nodes_stacks_;
-  std::optional<std::string> cur_key;
+  Node root_; // корневая нода, в которой хранится построенный json. По умолчанию добавляется в стек
+  std::vector<Node*> nodes_stacks_; // стек для отслеживания состояний json. Если размер равен нулю, значит json уже построен
+  std::vector<std::string> keys; // стек для хранения ключей для словарей. 
 };
 
 class BaseContext {
