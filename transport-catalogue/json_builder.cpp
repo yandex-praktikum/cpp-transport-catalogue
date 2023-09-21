@@ -10,6 +10,7 @@ json::DictItemContext json::Builder::StartDict() {
   if(nodes_stacks_.back()->IsArray()) {
     std::get<json::Array>(nodes_stacks_.back()->GetValue()).emplace_back(empty_dict);
     nodes_stacks_.push_back(&std::get<Array>(nodes_stacks_.back()->GetValue()).back());
+    return DictItemContext(*this);
   } else if(nodes_stacks_.back()->IsDict()) {
     if(!cur_key.has_value()) {
       throw std::logic_error("dict in dict must be a value");
@@ -17,12 +18,14 @@ json::DictItemContext json::Builder::StartDict() {
     std::get<Dict>(nodes_stacks_.back()->GetValue())[cur_key.value()] = empty_dict;
     nodes_stacks_.push_back(&std::get<Dict>(nodes_stacks_.back()->GetValue()).at(cur_key.value()));
     cur_key.reset();
-  } else {
-    static Node tmp(empty_dict);
-    nodes_stacks_.push_back(&tmp);
+    return DictItemContext(*this);
+  } else if (nodes_stacks_.back()->IsNull()) {
+    *nodes_stacks_.back() = empty_dict;
+    return DictItemContext(*this);
+
   }
 
-  return DictItemContext(*this);
+  throw std::logic_error("error in dict");
 }
 json::ArrayItemCotext json::Builder::StartArray() {
   Array empty_array;
@@ -41,11 +44,11 @@ json::ArrayItemCotext json::Builder::StartArray() {
     std::get<Array>(nodes_stacks_.back()->GetValue()).emplace_back(empty_array);
     nodes_stacks_.push_back(&std::get<Array>(nodes_stacks_.back()->GetValue()).back());
     return ArrayItemCotext(*this);
-  } else {
-    static Node tmp(empty_array);
-    nodes_stacks_.push_back(&tmp);
+  } else if(root_.IsNull() && nodes_stacks_.back() == &root_){
+    *nodes_stacks_.back() = empty_array;
+    return ArrayItemCotext(*this);
   }
-  return ArrayItemCotext(*this);
+  throw std::logic_error("error in array");
 
 }
 
@@ -66,8 +69,7 @@ json::KeyItemContext json::Builder::Key(std::string key) {
   return KeyItemContext(*this);
 }
 
-json::BaseContext json::Builder::Value(Node::Value value) {
-  auto val = CastValueToNode(value);
+json::BaseContext json::Builder::Value(Node val) {
   if(nodes_stacks_.size() == 1 && nodes_stacks_.back()->IsNull()) {
     nodes_stacks_.back() = &val;
     root_ = val;
@@ -92,7 +94,6 @@ json::BaseContext json::Builder::EndDict() {
     throw std::logic_error("try to close closed dict");
   }
   if(nodes_stacks_.back()->IsDict()) {
-    root_.GetValue() = nodes_stacks_.back()->GetValue();
     nodes_stacks_.pop_back();
   } else {
     throw std::logic_error("last must be dict");
@@ -105,7 +106,6 @@ json::BaseContext json::Builder::EndArray() {
     throw std::logic_error("try to close closed arr");
   }
   if(nodes_stacks_.back()->IsArray()) {
-    root_.GetValue() = nodes_stacks_.back()->GetValue();
     nodes_stacks_.pop_back();
   } else {
     throw std::logic_error("last must be array");
@@ -114,8 +114,7 @@ json::BaseContext json::Builder::EndArray() {
 
 }
 json::Node json::Builder::Build() {
-  if(nodes_stacks_.size() == 1 && root_ != nullptr) {
-    nodes_stacks_.pop_back();
+  if(nodes_stacks_.size() == 0 && root_ != nullptr) {
     return root_;
   } else {
     throw std::logic_error("stack must be empty");
@@ -138,30 +137,12 @@ BaseContext BaseContext::EndDict() {
 Node BaseContext::Build() {
   return builder_.Build();
 }
-BaseContext BaseContext::Value(Node::Value value) {
+BaseContext BaseContext::Value(Node value) {
   return builder_.Value(value);
 }
 KeyItemContext BaseContext::Key(std::string key) {
   return builder_.Key(std::move(key));
 }
 
-Node CastValueToNode(const Node::Value& value) {
-  Node node;
-  if (std::holds_alternative<int>(value) ){
-    node = std::get<int>(value);
-  }else if (std::holds_alternative<bool>(value)) {
-    node= std::get<bool>(value);
-  } else if(std::holds_alternative<double>(value)) {
-    node = std::get<double>(value);
-  }else if (std::holds_alternative<std::nullptr_t>(value) ) {
-    node = std::get<std::nullptr_t>(value);
-  } else if (std::holds_alternative<std::string>(value)) {
-    node = std::get<std::string>(value);
-  } else if (std::holds_alternative<Array>(value)) {
-    node = std::get<Array>(value);
-  } else{
-    node = std::get<Dict>(value);
-  }
-  return node;
-}
+
 }
