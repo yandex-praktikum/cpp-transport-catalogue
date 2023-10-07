@@ -3,17 +3,7 @@
 
 namespace transport_db
 {
-    size_t Stop::Hash() const
-    {
-        return hasher_((int64_t)this);
-    }
-
-    size_t StopHasher::operator()(const Segment &segment) const
-    {
-        size_t hash_value = segment.first->Hash() * 37;
-        hash_value += segment.second->Hash() * 37 * 37 * 37;
-        return hash_value;
-    }
+    using namespace domain;
 
     void TransportCatalogue::AddStop(const Stop &stop)
     {

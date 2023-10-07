@@ -1,5 +1,6 @@
 #include "transport_catalogue.h"
-#include "input_reader.h"
+#include "json_reader.h"
+#include "request_handler.h"
 #include "stat_reader.h"
 #include <iostream>
 
@@ -15,8 +16,14 @@ int main()
 
 #ifndef DEBUG
     transport_db::TransportCatalogue tc;
-    data_input::ReadData(std::cin, tc);
-    data_output::ProcessTcRequests(std::cin, tc);
+    {
+    handlers::RequestHandler handler(tc);
+    json_input::JsonReader reader(std::cin, handler);
+    reader.ReadDocument().InitDB();
+    }
+    std::cout<<"ok";
+
+    //data_output::ProcessTcRequests(std::cin, tc);
 #endif
 
 #ifdef DEBUG

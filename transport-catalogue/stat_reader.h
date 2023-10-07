@@ -7,6 +7,8 @@
 
 namespace data_output
 {
+
+
     void ProcessTcRequests(std::istream &in, transport_db::TransportCatalogue &tc);
 
     void ProcessRequest(std::istream &in, transport_db::TransportCatalogue &tc);
@@ -17,11 +19,11 @@ namespace data_output
         void RouteStat(std::string_view request, transport_db::TransportCatalogue &tc);
         namespace detail
         {
-            double StraightRouteLen(const std::vector<transport_db::Stop *> &stop_list, const transport_db::RouteType &route_type);
+            double StraightRouteLen(const std::vector<domain::Stop *> &stop_list, const domain::RouteType &route_type);
 
-            double RealRouteLen(transport_db::TransportCatalogue &tc, const std::vector<transport_db::Stop *> &stop_list, const transport_db::RouteType &route_type);
+            double RealRouteLen(transport_db::TransportCatalogue &tc, const std::vector<domain::Stop *> &stop_list, const domain::RouteType &route_type);
 
-            int CalcUnique(const std::vector<transport_db::Stop *> &stops);
+            int CalcUnique(const std::vector<domain::Stop *> &stops);
         }
     }
     namespace output_methods

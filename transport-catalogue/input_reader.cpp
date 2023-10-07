@@ -1,17 +1,12 @@
 #include "input_reader.h"
 
-using RouteData = std::pair<std::vector<std::string>, transport_db::RouteType>;
+using RouteData = std::pair<std::vector<std::string>, domain::RouteType>;
 
 namespace data_input
 {
-    StopInfo::StopInfo(transport_db::Stop &&stop, std::unordered_map<std::string, int> &&distances)
-        : stop(std::move(stop)), distances(std::move(distances))
-    {
-    }
-    RouteInfo::RouteInfo(std::string &&name, std::vector<std::string> stops, transport_db::RouteType &&type)
-        : name(std::move(name)), stops(std::move(stops)), type(std::move(type))
-    {
-    }
+    using namespace domain;
+
+   
     namespace detail
     {
 
@@ -53,7 +48,7 @@ namespace data_input
     {
         StopInfo StopRequest(std::string_view line)
         {
-            transport_db::Stop out;
+            Stop out;
             std::unordered_map<std::string, int> distances;
             auto [stop_name, right] = detail::Split(line, ':');
             out.name = (std::string)stop_name;
@@ -81,7 +76,7 @@ namespace data_input
                       stops.push_back(std::move((std::string)stop_name)); });
             route_stops[route_stops.size()-1].remove_prefix(1);
             stops.push_back(std::move((std::string)route_stops[route_stops.size() - 1]));
-            transport_db::RouteType type = delimeter == '>' ? transport_db::RouteType::CIRCLE : transport_db::RouteType::LINEAR;
+            RouteType type = delimeter == '>' ? RouteType::CIRCLE : RouteType::LINEAR;
             RouteInfo out{std::move((std::string)route_num), std::move(stops), std::move(type)};
             return out;
         }

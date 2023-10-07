@@ -8,7 +8,7 @@
 
 namespace data_output
 {
-
+    using namespace domain;
     void ProcessTcRequests(std::istream &in, transport_db::TransportCatalogue &tc)
     {
         int counter;
@@ -57,7 +57,7 @@ namespace data_output
                 auto route = tc.RouteInfo(request);
                 int stop_number, unique_stops;
                 unique_stops = detail::CalcUnique(route->stops);
-                stop_number = route->type == transport_db::RouteType::CIRCLE ? route->stops.size() : route->stops.size() * 2 - 1;
+                stop_number = route->type == RouteType::CIRCLE ? route->stops.size() : route->stops.size() * 2 - 1;
                 double straight_route_len = detail::StraightRouteLen(route->stops, route->type);
                 double real_route_len = detail::RealRouteLen(tc, route->stops, route->type);
                 output_methods::PrintRouteStat(request, stop_number, unique_stops, real_route_len, real_route_len / straight_route_len);
@@ -70,7 +70,7 @@ namespace data_output
         namespace detail
         {
 
-            double StraightRouteLen(const std::vector<transport_db::Stop *> &stop_list, const transport_db::RouteType &route_type)
+            double StraightRouteLen(const std::vector<Stop *> &stop_list, const RouteType &route_type)
             {
                 double route_len = 0;
                 auto segment_start = stop_list.begin();
@@ -80,11 +80,11 @@ namespace data_output
                     route_len += ComputeDistance((*segment_start)->coord, (*segment_end)->coord);
                     segment_start++;
                 }
-                route_len = route_type == transport_db::RouteType::LINEAR ? route_len * 2 : route_len;
+                route_len = route_type == RouteType::LINEAR ? route_len * 2 : route_len;
                 return route_len;
             }
 
-            double RealRouteLen(transport_db::TransportCatalogue &tc, const std::vector<transport_db::Stop *> &stop_list, const transport_db::RouteType &route_type)
+            double RealRouteLen(transport_db::TransportCatalogue &tc, const std::vector<Stop *> &stop_list, const RouteType &route_type)
             {
                 auto route_calc = [&](auto begin, auto end)
                 {
@@ -93,22 +93,22 @@ namespace data_output
                     auto segment_end = next(begin);
                     while (segment_end != end)
                     {
-                        transport_db::Segment forward_segment(*segment_start, *segment_end);
-                        transport_db::Segment backward_segment(*segment_end, *segment_start);
+                        Segment forward_segment(*segment_start, *segment_end);
+                        Segment backward_segment(*segment_end, *segment_start);
                         route_len += tc.FindSegment(forward_segment) ? tc.SegmentInfo(forward_segment) : tc.SegmentInfo(backward_segment);
                         segment_start++;
                         segment_end++;
                     }
-                    transport_db::Segment end_circle(*std::prev(segment_end), *std::prev(segment_end));
-                    route_len += route_type == transport_db::RouteType::LINEAR && tc.FindSegment(end_circle) ? tc.SegmentInfo(end_circle) : 0;
+                    Segment end_circle(*std::prev(segment_end), *std::prev(segment_end));
+                    route_len += route_type == RouteType::LINEAR && tc.FindSegment(end_circle) ? tc.SegmentInfo(end_circle) : 0;
                     return route_len;
                 };
                 double forward_len = route_calc(stop_list.begin(), stop_list.end());
-                double backward_len = route_type == transport_db::RouteType::LINEAR ? route_calc(stop_list.rbegin(), stop_list.rend()) : 0;
+                double backward_len = route_type == RouteType::LINEAR ? route_calc(stop_list.rbegin(), stop_list.rend()) : 0;
                 return forward_len + backward_len;
             }
 
-            int CalcUnique(const std::vector<transport_db::Stop *> &stops)
+            int CalcUnique(const std::vector<Stop *> &stops)
             {
                 std::unordered_set<std::string_view> unique_ptrs;
                 for (auto stop : stops)
@@ -121,7 +121,7 @@ namespace data_output
     }
     namespace output_methods
     {
-        void PrintStopStat(std::string_view stop_name, const std::set<std::string_view>& routes)
+        void PrintStopStat(std::string_view stop_name, const std::set<std::string_view> &routes)
         {
             std::cout << "Stop " << stop_name << ":";
             std::string info = " buses";

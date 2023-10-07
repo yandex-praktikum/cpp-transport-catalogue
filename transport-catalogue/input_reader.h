@@ -11,20 +11,8 @@
 
 namespace data_input
 {
-    struct StopInfo
-    {
-        StopInfo(transport_db::Stop &&stop, std::unordered_map<std::string, int> &&distances);
-        transport_db::Stop stop;
-        std::unordered_map<std::string, int> distances;
-    };
-
-    struct RouteInfo
-    {
-        RouteInfo(std::string &&name, std::vector<std::string> stops, transport_db::RouteType &&type);
-        std::string name;
-        std::vector<std::string> stops;
-        transport_db::RouteType type;
-    };
+    using namespace domain;
+    
     namespace detail
     {
         std::pair<std::string_view, std::string_view> Split(std::string_view in, char delimeter);
@@ -45,7 +33,7 @@ namespace data_input
     {
         std::vector<RouteInfo> raw_route_data;
         std::vector<StopInfo> raw_stop_data;
-        std::map<std::string, int> distances;
+        //std::map<std::string, int> distances;
         std::string data;
         int counter;
         (in >> counter).get();
