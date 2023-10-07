@@ -58,7 +58,7 @@ namespace handlers
             statistic.length=real_len;
             statistic.stop_count = route->type == RouteType::CIRCLE ? route->stops.size() : route->stops.size() * 2 - 1;
             statistic.unique_stop_count = detail::CalcUnique(route->stops);
-            return std::move(statistic);
+            return statistic;
         }
         return std::nullopt;
     }

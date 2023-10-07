@@ -48,13 +48,14 @@ namespace json_input
                 handler_.AddInfo(raw_stop_data, raw_route_data);
             }
             return *this;
-        }
+        };
 
         template <typename OutStream>
         void ProcessRequests(OutStream &out)
         {
             if (root_.count("stat_requests"s))
             {
+                Array all_answers;
                 const Array &requests = root_.at("stat_requests"s).AsArray();
                 for (const Node &node : requests)
                 {
@@ -69,13 +70,13 @@ namespace json_input
                             {
                                 buses.emplace_back(Node{std::string(route_number)});
                             }
-                            json::Document responce(Dict{{"request_id", request.at("id"s)},
-                                                         {"buses", Node{buses}}});
-                            json::Print(responce, out);
+                            all_answers.emplace_back(Node{Dict{{"request_id", request.at("id"s)},
+                                                               {"buses", Node{buses}}}});
                         }
                         else
                         {
-                            InfoNotFound(request.at("id"s), out);
+                            all_answers.emplace_back(Node{Dict{{"request_id", request.at("id"s)},
+                                                               {"error_message", Node{"not found"s}}}});
                         }
                     }
                     else
@@ -84,19 +85,21 @@ namespace json_input
                         if (route_info.has_value())
                         {
                             domain::RouteStat info = route_info.value();
-                            json::Document responce(Dict{{"curvature"s, Node{info.curvature}},
-                                                         {"request_id"s, request.at("id"s)},
-                                                         {"route_length"s, Node{static_cast<int>(info.length)}},
-                                                         {"stop_count", Node{info.stop_count}},
-                                                         {"unique_stop_count", Node{info.unique_stop_count}}});
-                            json::Print(responce, out);
+                            all_answers.emplace_back(Node{Dict{{"curvature"s, Node{info.curvature}},
+                                                               {"request_id"s, request.at("id"s)},
+                                                               {"route_length"s, Node{static_cast<int>(info.length)}},
+                                                               {"stop_count", Node{info.stop_count}},
+                                                               {"unique_stop_count", Node{info.unique_stop_count}}}});
                         }
                         else
                         {
-                            InfoNotFound(request.at("id"s), out);
+                            all_answers.emplace_back(Node{Dict{{"request_id", request.at("id"s)},
+                                                               {"error_message", Node{"not found"s}}}});
                         }
                     }
                 }
+                json::Document result(Node{all_answers});
+                json::Print(result,out);
             }
         }
 
@@ -116,7 +119,7 @@ namespace json_input
                 distances[next_stop] = distance.AsInt();
             }
             return {std::move(stop), std::move(distances)};
-        }
+        };
 
         domain::RouteInfo ProcessRouteInfo(Dict &&request)
         {
@@ -129,13 +132,5 @@ namespace json_input
             domain::RouteType type = request.at("is_roundtrip").AsBool() ? domain::RouteType::CIRCLE : domain::RouteType::LINEAR;
             return {std::move(route_name), std::move(stops), std::move(type)};
         };
-
-        template <typename OutStream>
-        void InfoNotFound(Node &request_id, OutStream &out)
-        {
-            json::Document not_found(Dict{{"request_id", request_id},
-                                          {"error_message", Node{"not found"s}}});
-            json::Print(not_found, out);
-        }
     };
 }
