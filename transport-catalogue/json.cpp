@@ -23,8 +23,7 @@ namespace json
                     break;
                 }
                 const char c = *it;
-                //if (c == ' ')
-                if(!isalpha(c))
+                if (!isalpha(c))
                 {
                     break;
                 }
@@ -34,7 +33,7 @@ namespace json
                 }
                 ++it;
             }
-            if (s == "null"s ||s=="nullptr")
+            if (s == "null"s || s == "nullptr")
             {
                 return Node();
             }
@@ -58,7 +57,6 @@ namespace json
 
             std::string parsed_num;
 
-            // Считывает в parsed_num очередной символ из input
             auto read_char = [&parsed_num, &input]
             {
                 parsed_num += static_cast<char>(input.get());
@@ -68,7 +66,6 @@ namespace json
                 }
             };
 
-            // Считывает одну или более цифр в parsed_num из input
             auto read_digits = [&input, read_char]
             {
                 if (!std::isdigit(input.peek()))
@@ -85,11 +82,9 @@ namespace json
             {
                 read_char();
             }
-            // Парсим целую часть числа
             if (input.peek() == '0')
             {
                 read_char();
-                // После 0 в JSON не могут идти другие цифры
             }
             else
             {
@@ -97,7 +92,6 @@ namespace json
             }
 
             bool is_int = true;
-            // Парсим дробную часть числа
             if (input.peek() == '.')
             {
                 read_char();
@@ -105,7 +99,6 @@ namespace json
                 is_int = false;
             }
 
-            // Парсим экспоненциальную часть числа
             if (int ch = input.peek(); ch == 'e' || ch == 'E')
             {
                 read_char();
@@ -121,15 +114,12 @@ namespace json
             {
                 if (is_int)
                 {
-                    // Сначала пробуем преобразовать строку в int
                     try
                     {
                         return std::stoi(parsed_num);
                     }
                     catch (...)
                     {
-                        // В случае неудачи, например, при переполнении,
-                        // код ниже попробует преобразовать строку в double
                     }
                 }
                 return std::stod(parsed_num);
@@ -256,7 +246,7 @@ namespace json
             }
             if (bad_json)
             {
-                throw ParsingError("bad array section"s);
+                throw ParsingError("bad map section"s);
             }
             return Node(move(result));
         }
@@ -291,6 +281,30 @@ namespace json
         }
 
     } // namespace
+
+    void PrintContext::MakeIndent() const
+    {
+        for (int step = 0; step < indent_; step++)
+        {
+            out << ' ';
+        }
+    }
+    void PrintContext::IndentMore()
+    {
+        indent_ += indent_step_;
+    }
+    void PrintContext::IndentLess()
+    {
+        indent_ -= indent_step_;
+        if (indent_ < 0)
+        {
+            indent_ = 0;
+        }
+    }
+    int PrintContext::IndentLevel() const
+    {
+        return indent_ / indent_step_;
+    }
 
     Node::Node(bool value)
         : keep_(std::move(Keep(value)))
@@ -328,101 +342,46 @@ namespace json
 
     bool Node::IsInt() const
     {
-        bool out;
-        std::visit([&out](auto &value)
-                   {
-            using T = std::decay_t<decltype(value)>;
-            if (std::is_same_v<T, int>){
-                out=true;
-            } else{
-                out=false;
-            } },
-                   keep_);
-        return out;
+        // альтернативная версия проверки- пока оставлю чтобы не забыть, хочу разобраться в тонкостях
+        // bool out;
+        // std::visit([&out](auto &value)
+        //            {
+        //     using T = std::decay_t<decltype(value)>;
+        //     if (std::is_same_v<T, int>){
+        //         out=true;
+        //     } else{
+        //         out=false;
+        //     } },
+        //            keep_);
+        // return out;
+        return std::holds_alternative<int>(keep_);
     }
-    bool Node::IsDouble() const
-    { // Возвращает true, если в Node хранится int либо double.
-        bool out;
-        std::visit([&out](auto &value)
-                   {
-            using T = std::decay_t<decltype(value)>;
-            if ((std::is_same_v<T, int>) || ((std::is_same_v<T, double>))){
-                out=true;
-            } else{
-                out=false;
-            } },
-                   keep_);
-        return out;
-    }
+
     bool Node::IsPureDouble() const
     {
-        bool out;
-        std::visit([&out](auto &value)
-                   {
-            using T = std::decay_t<decltype(value)>;
-            if (std::is_same_v<T, double>){
-                out=true;
-            } else{
-                out=false;
-            } },
-                   keep_);
-        return out;
+        return std::holds_alternative<double>(keep_);
     }
+
+    bool Node::IsDouble() const
+    {
+        return IsInt() || IsPureDouble();
+    }
+
     bool Node::IsBool() const
     {
-        bool out;
-        std::visit([&out](auto &value)
-                   {
-            using T = std::decay_t<decltype(value)>;
-            if (std::is_same_v<T, bool>){
-                out=true;
-            } else{
-                out=false;
-            } },
-                   keep_);
-        return out;
+        return std::holds_alternative<bool>(keep_);
     }
     bool Node::IsString() const
     {
-        bool out;
-        std::visit([&out](auto &value)
-                   {
-            using T = std::decay_t<decltype(value)>;
-            if (std::is_same_v<T, std::string>){
-                out=true;
-            } else{
-                out=false;
-            } },
-                   keep_);
-        return out;
+        return std::holds_alternative<std::string>(keep_);
     }
     bool Node::IsArray() const
     {
-        bool out;
-        std::visit([&out](auto &value)
-                   {
-            using T = std::decay_t<decltype(value)>;
-            if (std::is_same_v<T, Array>){
-                out=true;
-            } else{
-                out=false;
-            } },
-                   keep_);
-        return out;
+        return std::holds_alternative<Array>(keep_);
     }
     bool Node::IsMap() const
     {
-        bool out;
-        std::visit([&out](auto &value)
-                   {
-            using T = std::decay_t<decltype(value)>;
-            if (std::is_same_v<T, Dict>){
-                out=true;
-            } else{
-                out=false;
-            } },
-                   keep_);
-        return out;
+        return std::holds_alternative<Dict>(keep_);
     }
 
     int Node::AsInt() const
@@ -457,14 +416,7 @@ namespace json
         }
         else
         {
-            if (IsInt())
-            {
-                return std::get<int>(keep_);
-            }
-            else
-            {
-                return std::get<double>(keep_);
-            }
+            return IsInt() ? std::get<int>(keep_) : std::get<double>(keep_);
         }
     }
 
@@ -515,17 +467,17 @@ namespace json
         return !(left == right);
     }
 
-    void PrintValue(std::nullptr_t, std::ostream &out)
+    void PrintValue(std::nullptr_t, PrintContext &ctx)
     {
-        out << "null"sv;
+        ctx.out << "null"sv;
     }
-    void PrintValue(const bool value, std::ostream &out)
+    void PrintValue(const bool value, PrintContext &ctx)
     {
 
-        out << std::boolalpha << value;
+        ctx.out << std::boolalpha << value;
     }
 
-    void PrintValue(const std::string &value, std::ostream &out)
+    void PrintValue(const std::string &value, PrintContext &ctx)
     {
         std::string out_str = "\"";
         for (char ch : value)
@@ -533,57 +485,70 @@ namespace json
             switch (ch)
             {
             case '"':
-                out_str += "\\\""s;
+                out_str += "\\\""sv;
                 break;
             case '\\':
-                out_str += "\\\\"s;
+                out_str += "\\\\"sv;
                 break;
             case '\n':
-                out_str += "\\n";
+                out_str += "\\n"sv;
                 break;
             case '\r':
-                out_str += "\\r";
+                out_str += "\\r"sv;
                 break;
             default:
                 out_str.push_back(ch);
             }
         }
         out_str.push_back('\"');
-        out << out_str;
+        ctx.out << out_str;
     }
 
-    void PrintValue(const Array &array, std::ostream &out)
+    void PrintValue(const Array &arr, PrintContext &ctx)
     {
-        out << "["s;
-        auto it = array.begin();
-        PrintNode(*it, out);
-        ++it;
-        while (it != array.end())
+        ctx.out << "["sv;
+        auto it = arr.begin();
+        if (arr.size() > 0)
         {
-            out << ",";
-            PrintNode(*it, out);
+            PrintNode(*it, ctx);
             ++it;
         }
-        out << "]"s;
-    }
-
-    void PrintValue(const Dict &map, std::ostream &out)
-    {
-        out << "{";
-        for (auto &[key, value] : map)
+        while (it != arr.end())
         {
-            PrintValue(key, out);
-            out << ":";
-            PrintNode(value, out);
+            ctx.out << ", "sv;
+            PrintNode(*it, ctx);
+            ++it;
         }
-        out << "}"s;
+        ctx.out << "]"sv;
     }
 
-    void PrintNode(const Node &node, std::ostream &out)
+    void PrintValue(const Dict &dict, PrintContext &ctx)
+    {
+        ctx.out << "{"sv;
+        auto it = dict.begin();
+        if (dict.size() > 0)
+        {
+            PrintValue(it->first, ctx);
+            ctx.out << ": "sv;
+            PrintNode(it->second, ctx);
+            ++it;
+        }
+        while (it != dict.end())
+        {
+            ctx.out << ","sv;
+            PrintValue(it->first, ctx);
+            ctx.out << ":";
+            PrintNode(it->second, ctx);
+            ++it;
+        }
+        ctx.out << "}"sv;
+    }
+
+    void PrintNode(const Node &node, PrintContext &ctx)
     {
         std::visit(
-            [&out](const auto &value)
-            { PrintValue(value, out); },
+            [&ctx](const auto &value)
+            { PrintValue(value, ctx); },
             node.GetValue());
     }
 
@@ -602,11 +567,19 @@ namespace json
         return Document{LoadNode(input)};
     }
 
-    void Print(const Document &doc, std::ostream &output) // all document print func
+    bool operator==(const Document &left, const Document &right)
     {
-        PrintNode(doc.GetRoot(), output);
+        return left.GetRoot() == right.GetRoot();
+    }
+    bool operator!=(const Document &left, const Document &right)
+    {
+        return !(left == right);
+    }
 
-        // Реализуйте функцию самостоятельно
+    void Print(const Document &doc, std::ostream &output)
+    {
+        PrintContext ctx(output);
+        PrintNode(doc.GetRoot(), ctx);
     }
 
 } // namespace json

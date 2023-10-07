@@ -22,7 +22,7 @@ namespace transport_db
 
         bool FindStop(std::string_view stop_name) const;
         bool FindRote(std::string_view route_number) const;
-        bool FindSegment(const domain::Segment &segment);
+        bool FindSegment(const domain::Segment &segment) const;
 
         const domain::Stop *StopInfo(std::string_view stop_name) const;
         const domain::Bus *RouteInfo(std::string_view route_number) const;

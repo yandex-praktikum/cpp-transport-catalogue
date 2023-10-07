@@ -75,4 +75,12 @@ namespace domain{
         std::string type;
         std::string body;
     };
+
+
+    struct RouteStat{
+        double curvature;
+        int length;
+        int stop_count;
+        int unique_stop_count;
+    };
 }

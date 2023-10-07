@@ -16,12 +16,11 @@ int main()
 
 #ifndef DEBUG
     transport_db::TransportCatalogue tc;
-    {
+
     handlers::RequestHandler handler(tc);
     json_input::JsonReader reader(std::cin, handler);
     reader.ReadDocument().InitDB();
-    }
-    std::cout<<"ok";
+    reader.ProcessRequests(std::cout);
 
     //data_output::ProcessTcRequests(std::cin, tc);
 #endif

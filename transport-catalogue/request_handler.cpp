@@ -1,5 +1,7 @@
 #include "request_handler.h"
 #include <algorithm>
+#include <unordered_set>
+#include "domain.h"
 
 /*
  * Здесь можно было бы разместить код обработчика запросов к базе, содержащего логику, которую не
@@ -11,12 +13,15 @@
 
 namespace handlers
 {
-    void RequestHandler::AddInfo(const std::vector<domain::StopInfo> &stops,const std::vector<domain::RouteInfo> &routes){
+    using namespace domain;
+
+    void RequestHandler::AddInfo(const std::vector<StopInfo> &stops, const std::vector<RouteInfo> &routes)
+    {
         AddStopsInfo(stops);
         AddRouteInfo(routes);
     }
 
-    void RequestHandler::AddStopsInfo(const std::vector<domain::StopInfo> &stops)
+    void RequestHandler::AddStopsInfo(const std::vector<StopInfo> &stops)
     {
 
         std::for_each(stops.begin(), stops.end(),
@@ -33,13 +38,91 @@ namespace handlers
                           }
                       });
     }
-    void RequestHandler::AddRouteInfo(const std::vector<domain::RouteInfo> &routes)
+    void RequestHandler::AddRouteInfo(const std::vector<RouteInfo> &routes)
     {
         std::for_each(routes.begin(), routes.end(),
                       [&](auto &route)
                       {
                           db_.AddRoute(route.name, route.stops, route.type);
                       });
+    }
+
+    std::optional<RouteStat> RequestHandler::GetRouteStat(const std::string_view &route_name) const
+    {
+        if (db_.FindRote(route_name))
+        {
+            const Bus *route = db_.RouteInfo(route_name);
+            RouteStat statistic;
+            double real_len = detail::RealRouteLen(db_, route->stops,route->type);
+            statistic.curvature = real_len/detail::StraightRouteLen(route->stops,route->type);
+            statistic.length=real_len;
+            statistic.stop_count = route->type == RouteType::CIRCLE ? route->stops.size() : route->stops.size() * 2 - 1;
+            statistic.unique_stop_count = detail::CalcUnique(route->stops);
+            return std::move(statistic);
+        }
+        return std::nullopt;
+    }
+
+    std::optional<std::set<std::string_view>> RequestHandler::GetStopInfo(const std::string_view &stop_name) const
+    {
+        if(db_.FindStop(stop_name)){
+            const Stop* stop = db_.StopInfo(stop_name);
+            return stop->route_numbers;
+        }
+        return std::nullopt;
+    }
+
+    namespace detail
+    {
+        using namespace domain;
+
+        double StraightRouteLen(const std::vector<Stop *> &stop_list, const RouteType &route_type)
+        {
+            double route_len = 0;
+            auto segment_start = stop_list.begin();
+            auto segment_end = next(stop_list.begin());
+            for (; segment_end != stop_list.end(); segment_end++)
+            {
+                route_len += ComputeDistance((*segment_start)->coord, (*segment_end)->coord);
+                segment_start++;
+            }
+            route_len = route_type == RouteType::LINEAR ? route_len * 2 : route_len;
+            return route_len;
+        }
+
+        double RealRouteLen(const transport_db::TransportCatalogue &tc, const std::vector<Stop *> &stop_list, const RouteType &route_type)
+        {
+            auto route_calc = [&](auto begin, auto end)
+            {
+                double route_len = 0;
+                auto segment_start = begin;
+                auto segment_end = next(begin);
+                while (segment_end != end)
+                {
+                    Segment forward_segment(*segment_start, *segment_end);
+                    Segment backward_segment(*segment_end, *segment_start);
+                    route_len += tc.FindSegment(forward_segment) ? tc.SegmentInfo(forward_segment) : tc.SegmentInfo(backward_segment);
+                    segment_start++;
+                    segment_end++;
+                }
+                Segment end_circle(*std::prev(segment_end), *std::prev(segment_end));
+                route_len += route_type == RouteType::LINEAR && tc.FindSegment(end_circle) ? tc.SegmentInfo(end_circle) : 0;
+                return route_len;
+            };
+            double forward_len = route_calc(stop_list.begin(), stop_list.end());
+            double backward_len = route_type == RouteType::LINEAR ? route_calc(stop_list.rbegin(), stop_list.rend()) : 0;
+            return forward_len + backward_len;
+        }
+
+        int CalcUnique(const std::vector<domain::Stop *> &stops)
+        {
+            std::unordered_set<std::string_view> unique_ptrs;
+            for (auto stop : stops)
+            {
+                unique_ptrs.insert(stop->name);
+            }
+            return unique_ptrs.size();
+        }
     }
 
 }

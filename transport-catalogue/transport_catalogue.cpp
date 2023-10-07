@@ -50,10 +50,9 @@ namespace transport_db
         return route_index_.count(route_number);
     }
 
-    bool TransportCatalogue::FindSegment(const Segment &segment)
+    bool TransportCatalogue::FindSegment(const Segment &segment) const
     {
-        bool have_segment = distances_.count(segment);
-        return have_segment;
+        return  distances_.count(segment);
     }
 
     const Bus *TransportCatalogue::RouteInfo(std::string_view route_number) const

@@ -21,6 +21,22 @@ namespace json
         using runtime_error::runtime_error;
     };
 
+    class PrintContext{
+        public:
+            explicit PrintContext(std::ostream &output)
+            :out(output) {}
+            std::ostream &out;
+            bool new_section;
+            void MakeIndent() const;
+            void IndentMore();
+            void IndentLess();
+            int IndentLevel() const;
+
+        private:
+        int indent_step_=4;
+        int indent_=0;
+    };
+
     class Node
     {
     public:
@@ -59,20 +75,19 @@ namespace json
     };
 
     bool operator ==(const Node& left, const Node& right);
-
     bool operator !=(const Node& left, const Node& right);
 
     template <typename Value>
-    void PrintValue(const Value &value, std::ostream &out)
+    void PrintValue(const Value &value, PrintContext &ctx)
     {
-        out << value;
+        ctx.out << value;
     }
-    void PrintValue(std::nullptr_t, std::ostream &out);
-    void PrintValue(const bool value, std::ostream &out);
-    void PrintValue(const std::string &value, std::ostream &out);
-    void PrintValue(const Array &array, std::ostream &out);
-    void PrintValue(const Dict &array, std::ostream &out);
-    void PrintNode(const Node &node, std::ostream &out);
+    void PrintValue(std::nullptr_t, PrintContext &ctx);
+    void PrintValue(const bool value, PrintContext &ctx);
+    void PrintValue(const std::string &value, PrintContext &ctx);
+    void PrintValue(const Array &array, PrintContext &ctx);
+    void PrintValue(const Dict &array, PrintContext &ctx);
+    void PrintNode(const Node &node, PrintContext &ctx);
 
     class Document
     {
@@ -86,6 +101,9 @@ namespace json
     };
 
     Document Load(std::istream &input);
+
+    bool operator==(const Document &left, const Document &right);
+    bool operator!=(const Document &left, const Document &right);
 
     void Print(const Document &doc, std::ostream &output);
 
