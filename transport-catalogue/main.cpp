@@ -17,7 +17,7 @@ int main()
     json_input::JsonReader reader(std::cin, handler);
     renderer::MapRenderer renderer(tc);
     reader.ReadDocument().InitDB();
-    reader.ProcessRequests(std::cout);
+    //reader.ProcessRequests(std::cout);
     reader.RenderMap(std::cout,renderer);
 
 

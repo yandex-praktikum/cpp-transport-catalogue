@@ -136,7 +136,7 @@ namespace renderer
             {
                 svg::Polyline route_line;
                 route_line.SetStrokeColor(settings.color_palette[route_number % color_palette_size]).SetStrokeWidth(settings.line_width);
-                route_line.SetStrokeLineCap(svg::StrokeLineCap::ROUND).SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
+                route_line.SetStrokeLineCap(svg::StrokeLineCap::ROUND).SetStrokeLineJoin(svg::StrokeLineJoin::ROUND).SetFillColor("none"s);
                 const domain::Bus *route_info = db_.RouteInfo(name);
                 for (auto stop : route_info->stops)
                 {
