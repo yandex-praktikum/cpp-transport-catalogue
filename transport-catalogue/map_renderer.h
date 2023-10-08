@@ -115,17 +115,9 @@ namespace renderer
             : db_(db)
         {
         }
-        MapRenderer &SetRouteData(std::set<std::string_view> &&routes)
-        {
-            route_list_ = routes;
-            return *this;
-        };
+        MapRenderer &SetRouteData(std::set<std::string_view> &&routes);
 
-        MapRenderer &SetSettings(RenderSettings &&settings)
-        {
-            settings_ = settings;
-            return *this;
-        };
+        MapRenderer &SetSettings(RenderSettings &&settings);
 
         SphereProjector MakeProjector(const std::set<std::string_view> &route_list, const RenderSettings &settings);
         void PrepareRoutes(svg::Document &route_map, const SphereProjector projector, const std::set<std::string_view> &route_list);
