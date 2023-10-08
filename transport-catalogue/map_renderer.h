@@ -8,6 +8,7 @@
 #include <iostream>
 #include <optional>
 #include <vector>
+#include <cassert>
 #include "transport_catalogue.h"
 
 namespace renderer
@@ -114,54 +115,35 @@ namespace renderer
             : db_(db)
         {
         }
+        MapRenderer &SetRouteData(std::set<std::string_view> &&routes)
+        {
+            route_list_ = routes;
+            return *this;
+        };
+
+        MapRenderer &SetSettings(RenderSettings &&settings)
+        {
+            settings_ = settings;
+            return *this;
+        };
+
+        SphereProjector MakeProjector(const std::set<std::string_view> &route_list, const RenderSettings &settings);
+        void PrepareRoutes(svg::Document &route_map, const SphereProjector projector, const std::set<std::string_view> &route_list);
 
         template <typename OutStream>
-        void Render(OutStream &out, RenderSettings &&settings)
+        void Render(OutStream &out)
         {
-            auto route_list = db_.GetAllRoutes();
-            std::vector<geo::Coordinates> all_stops;
-            for (auto name : route_list)
-            {
-                const domain::Bus *route_info = db_.RouteInfo(name);
-                for (auto stop : route_info->stops)
-                {
-                    all_stops.push_back(stop->coord);
-                }
-            }
-            SphereProjector projector(all_stops.begin(), all_stops.end(), settings.width, settings.height, settings.padding);
+            assert(settings_.color_palette.size() != 0);
             svg::Document route_map;
-            size_t route_number = 0;
-            size_t color_palette_size = settings.color_palette.size();
-            for (auto name : route_list)
-            {
-                svg::Polyline route_line;
-                route_line.SetStrokeColor(settings.color_palette[route_number % color_palette_size]).SetStrokeWidth(settings.line_width);
-                route_line.SetStrokeLineCap(svg::StrokeLineCap::ROUND).SetStrokeLineJoin(svg::StrokeLineJoin::ROUND).SetFillColor("none"s);
-                const domain::Bus *route_info = db_.RouteInfo(name);
-                for (auto stop : route_info->stops)
-                {
-                    route_line.AddPoint(projector(stop->coord));
-                }
-                if (route_info->type == domain::RouteType::LINEAR && route_info->stops.size())
-                {
-                    auto stops_it = std::next(route_info->stops.rbegin());
-                    while (stops_it != route_info->stops.rend())
-                    {
-                        route_line.AddPoint(projector((*stops_it)->coord));
-                        ++stops_it;
-                    }
-                }
-                if (route_info->stops.size())
-                {
-                    route_map.Add(route_line);
-                    ++route_number;
-                }
-            }
+            SphereProjector projector = MakeProjector(route_list_, settings_);
+            PrepareRoutes(route_map, projector, route_list_);
             route_map.Render(out);
         }
 
     private:
         const transport_db::TransportCatalogue &db_;
+        RenderSettings settings_;
+        std::set<std::string_view> route_list_;
     };
 
 }

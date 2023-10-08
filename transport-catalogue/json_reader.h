@@ -27,7 +27,7 @@ namespace json_input
             return *this;
         };
 
-        JsonReader &InitDB()
+        std::pair<const std::vector<domain::StopInfo>, const std::vector<domain::RouteInfo>> GetDbInfo()
         {
             std::vector<domain::StopInfo> raw_stop_data;
             std::vector<domain::RouteInfo> raw_route_data;
@@ -46,9 +46,9 @@ namespace json_input
                         raw_route_data.push_back(std::move(ProcessRouteInfo(std::move(request))));
                     }
                 }
-                handler_.AddInfo(raw_stop_data, raw_route_data);
+                return {raw_stop_data, raw_route_data};
             }
-            return *this;
+            return {};
         };
 
         template <typename OutStream>
@@ -104,13 +104,13 @@ namespace json_input
             }
             return *this;
         }
-        template<typename OutStream>
-        JsonReader &RenderMap(OutStream& out, renderer::MapRenderer renderer)
+
+        renderer::RenderSettings GetRenderSettings()
         {
             using namespace renderer;
+            RenderSettings render_settings;
             if (root_.count("render_settings"s))
             {
-                RenderSettings render_settings;
                 Dict raw_settings = root_.at("render_settings"s).AsMap();
                 render_settings.height = raw_settings.at("height"s).AsDouble();
                 render_settings.width = raw_settings.at("width"s).AsDouble();
@@ -130,9 +130,8 @@ namespace json_input
                 {
                     render_settings.color_palette.push_back(DecodeColorValue(node));
                 }
-                renderer.Render(out,std::move(render_settings));
             }
-            return *this;
+            return render_settings;
         }
 
     private:

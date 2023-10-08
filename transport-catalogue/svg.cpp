@@ -127,7 +127,7 @@ namespace svg
         auto &out = context.out;
         out << "<polyline "sv;
         RenderAttrs(context);
-        out << "points = \""sv;
+        out << "points=\""sv;
         bool begin = true;
         for (const Point &point : vertexes_)
         {

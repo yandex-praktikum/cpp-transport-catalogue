@@ -29,13 +29,18 @@ namespace handlers
             : db_(db){};
 
         //-----------db fill requests---------
-        void AddInfo(const std::vector<domain::StopInfo> &stops, const std::vector<domain::RouteInfo> &routes);
+        void InitDB(std::pair<const std::vector<domain::StopInfo>, const std::vector<domain::RouteInfo>>&& data);
         //-----------------------------------
         //
         //--------- requests answers --------
         std::optional<domain::RouteStat> GetRouteStat(const std::string_view &bus_name) const;
 
-        std::optional<std::set<std::string_view>> GetStopInfo(const std::string_view& stop_name) const;
+        std::optional<std::set<std::string_view>> GetStopInfo(const std::string_view &stop_name) const;
+
+        std::set<std::string_view> GetRoutes()
+        {
+            return std::move(db_.GetAllRoutes());
+        };
         //----------------------------------
         // Этот метод будет нужен в следующей части итогового проекта
         // svg::Document RenderMap() const;
@@ -54,7 +59,7 @@ namespace handlers
         double StraightRouteLen(const std::vector<domain::Stop *> &stop_list, const domain::RouteType &route_type);
 
         double RealRouteLen(const transport_db::TransportCatalogue &tc, const std::vector<domain::Stop *> &stop_list, const domain::RouteType &route_type);
-     
+
         int CalcUnique(const std::vector<domain::Stop *> &stops);
     }
 }

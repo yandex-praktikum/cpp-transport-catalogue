@@ -15,10 +15,10 @@ namespace handlers
 {
     using namespace domain;
 
-    void RequestHandler::AddInfo(const std::vector<StopInfo> &stops, const std::vector<RouteInfo> &routes)
+    void RequestHandler::InitDB(std::pair<const std::vector<domain::StopInfo>, const std::vector<domain::RouteInfo>> &&data)
     {
-        AddStopsInfo(stops);
-        AddRouteInfo(routes);
+        AddStopsInfo(data.first);
+        AddRouteInfo(data.second);
     }
 
     void RequestHandler::AddStopsInfo(const std::vector<StopInfo> &stops)
