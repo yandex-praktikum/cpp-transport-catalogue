@@ -28,8 +28,7 @@ namespace svg
     }
     std::string ExtractColor::operator()(Rgba color)
     {
-        std::string alpha = color.opacity == 0 ? "0"s : std::to_string(color.opacity).substr(0, 3);
-        return "rgba("s + std::to_string(color.red) + ","s + std::to_string(color.green) + ","s + std::to_string(color.blue) + ","s + alpha +")"s;
+        return "rgba("s + std::to_string(color.red) + ","s + std::to_string(color.green) + ","s + std::to_string(color.blue) + ","s + std::to_string(color.opacity) + ")"s;
     }
 
     std::ostream &operator<<(std::ostream &out, const Color &color)

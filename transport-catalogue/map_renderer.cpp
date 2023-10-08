@@ -37,7 +37,7 @@ namespace renderer
             const domain::Bus *route_info = db_.RouteInfo(name);
             for (auto stop : route_info->stops)
             {
-                all_stops.push_back(stop->coord);
+                    all_stops.push_back(stop->coord);
             }
         }
         return std::move(SphereProjector(all_stops.begin(), all_stops.end(), settings.width, settings.height, settings.padding));

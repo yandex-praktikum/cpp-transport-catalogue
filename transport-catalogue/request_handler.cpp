@@ -72,6 +72,11 @@ namespace handlers
         return std::nullopt;
     }
 
+    std::set<std::string_view> RequestHandler::GetRoutes()
+    {
+        return std::move(db_.GetAllRoutes());
+    }
+
     namespace detail
     {
         using namespace domain;

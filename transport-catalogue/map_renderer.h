@@ -119,9 +119,6 @@ namespace renderer
 
         MapRenderer &SetSettings(RenderSettings &&settings);
 
-        SphereProjector MakeProjector(const std::set<std::string_view> &route_list, const RenderSettings &settings);
-        void PrepareRoutes(svg::Document &route_map, const SphereProjector projector, const std::set<std::string_view> &route_list);
-
         template <typename OutStream>
         void Render(OutStream &out)
         {
@@ -136,6 +133,9 @@ namespace renderer
         const transport_db::TransportCatalogue &db_;
         RenderSettings settings_;
         std::set<std::string_view> route_list_;
+
+        SphereProjector MakeProjector(const std::set<std::string_view> &route_list, const RenderSettings &settings);
+        void PrepareRoutes(svg::Document &route_map, const SphereProjector projector, const std::set<std::string_view> &route_list);
     };
 
 }

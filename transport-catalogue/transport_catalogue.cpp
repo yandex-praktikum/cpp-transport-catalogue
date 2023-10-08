@@ -1,5 +1,6 @@
 #include "transport_catalogue.h"
 #include <iostream>
+#include <cassert>
 
 namespace transport_db
 {
@@ -29,6 +30,7 @@ namespace transport_db
         std::string_view route_name(bus_ptr->route_number);
         for (auto &stop : stops)
         {
+            assert(FindStop(stop));
             Stop *stop_ptr = stop_index_.at(stop);
             (bus_ptr->stops).push_back(stop_ptr);
             stop_ptr->route_numbers.insert(route_name);
@@ -52,7 +54,7 @@ namespace transport_db
 
     bool TransportCatalogue::FindSegment(const Segment &segment) const
     {
-        return  distances_.count(segment);
+        return distances_.count(segment);
     }
 
     const Bus *TransportCatalogue::RouteInfo(std::string_view route_number) const
@@ -65,9 +67,11 @@ namespace transport_db
         return distances_.at(segment);
     }
 
-    std::set<std::string_view> TransportCatalogue::GetAllRoutes() const {
+    std::set<std::string_view> TransportCatalogue::GetAllRoutes() const
+    {
         std::set<std::string_view> out;
-        for(auto&[name, _]: route_index_){
+        for (auto &[name, _] : route_index_)
+        {
             out.insert(name);
         }
         return out;

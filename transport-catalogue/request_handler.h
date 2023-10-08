@@ -37,10 +37,8 @@ namespace handlers
 
         std::optional<std::set<std::string_view>> GetStopInfo(const std::string_view &stop_name) const;
 
-        std::set<std::string_view> GetRoutes()
-        {
-            return std::move(db_.GetAllRoutes());
-        };
+        std::set<std::string_view> GetRoutes();
+        
         //----------------------------------
         // Этот метод будет нужен в следующей части итогового проекта
         // svg::Document RenderMap() const;
