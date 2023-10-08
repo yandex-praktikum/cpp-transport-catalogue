@@ -7,7 +7,7 @@ namespace renderer
         bool LessThenError(double value)
         {
             return std::abs(value) < EPSILON;
-        };
+        }
     }
     svg::Point SphereProjector::operator()(geo::Coordinates coords) const
     {

@@ -16,7 +16,7 @@ namespace renderer
     {
         inline const double EPSILON = 1e-6;
         bool LessThenError(double value);
-       
+
     }
     struct RenderSettings
     {
@@ -141,18 +141,21 @@ namespace renderer
                 for (auto stop : route_info->stops)
                 {
                     route_line.AddPoint(projector(stop->coord));
-                    
                 }
-                if (route_info->type==domain::RouteType::LINEAR){
-                    auto stops_it= std::next(route_info->stops.rbegin());
-                    while(stops_it!=route_info->stops.rend()){
+                if (route_info->type == domain::RouteType::LINEAR && route_info->stops.size())
+                {
+                    auto stops_it = std::next(route_info->stops.rbegin());
+                    while (stops_it != route_info->stops.rend())
+                    {
                         route_line.AddPoint(projector((*stops_it)->coord));
                         ++stops_it;
                     }
-
                 }
-                route_map.Add(route_line);
-                ++route_number;
+                if (route_info->stops.size())
+                {
+                    route_map.Add(route_line);
+                    ++route_number;
+                }
             }
             route_map.Render(out);
         }
