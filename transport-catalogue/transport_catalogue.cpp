@@ -64,4 +64,12 @@ namespace transport_db
     {
         return distances_.at(segment);
     }
+
+    std::set<std::string_view> TransportCatalogue::GetAllRoutes() const {
+        std::set<std::string_view> out;
+        for(auto&[name, _]: route_index_){
+            out.insert(name);
+        }
+        return out;
+    }
 }

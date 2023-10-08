@@ -28,6 +28,9 @@ namespace transport_db
         const domain::Bus *RouteInfo(std::string_view route_number) const;
         int SegmentInfo(const domain::Segment &segment) const;
 
+        std::set<std::string_view> GetAllRoutes() const;
+      
+
     private:
         std::deque<domain::Stop> stops_;
         std::deque<domain::Bus> routes_;

@@ -4,6 +4,7 @@
 #include "transport_catalogue.h"
 #include "domain.h"
 #include "request_handler.h"
+#include "map_renderer.h"
 #include <algorithm>
 
 namespace json_input
@@ -51,7 +52,7 @@ namespace json_input
         };
 
         template <typename OutStream>
-        void ProcessRequests(OutStream &out)
+        JsonReader &ProcessRequests(OutStream &out)
         {
             if (root_.count("stat_requests"s))
             {
@@ -99,20 +100,52 @@ namespace json_input
                     }
                 }
                 json::Document result(Node{all_answers});
-                json::Print(result,out);
+                json::Print(result, out);
             }
+            return *this;
+        }
+        template<typename OutStream>
+        JsonReader &RenderMap(OutStream& out, renderer::MapRenderer renderer)
+        {
+            using namespace renderer;
+            if (root_.count("render_settings"s))
+            {
+                RenderSettings render_settings;
+                Dict raw_settings = root_.at("render_settings"s).AsMap();
+                render_settings.height = raw_settings.at("height"s).AsDouble();
+                render_settings.width = raw_settings.at("width"s).AsDouble();
+                render_settings.padding = raw_settings.at("padding"s).AsDouble();
+                render_settings.line_width = raw_settings.at("line_width"s).AsDouble();
+                render_settings.stop_radius = raw_settings.at("stop_radius"s).AsDouble();
+                render_settings.bus_label_font_size = raw_settings.at("bus_label_font_size"s).AsInt();
+                render_settings.stop_label_font_size = raw_settings.at("stop_label_font_size"s).AsInt();
+                render_settings.underlayer_width = raw_settings.at("underlayer_width"s).AsDouble();
+                Array bus_label_offset = raw_settings.at("bus_label_offset"s).AsArray();
+                render_settings.bus_label_offset = std::move(std::vector<double>{bus_label_offset[0].AsDouble(), bus_label_offset[1].AsDouble()});
+                Array stop_label_offset = raw_settings.at("stop_label_offset"s).AsArray();
+                render_settings.stop_label_offset = std::move(std::vector<double>{stop_label_offset[0].AsDouble(), stop_label_offset[1].AsDouble()});
+                render_settings.underlayer_color = DecodeColorValue(raw_settings.at("underlayer_color"));
+                Array palette = raw_settings.at("color_palette").AsArray();
+                for (Node &node : palette)
+                {
+                    render_settings.color_palette.push_back(DecodeColorValue(node));
+                }
+                renderer.Render(out,std::move(render_settings));
+            }
+            return *this;
         }
 
     private:
         InStream &in_;
         handlers::RequestHandler &handler_;
         Dict root_;
+        std::set<std::string> existing_routes_;
 
         domain::StopInfo ProcessStopInfo(Dict &&request)
         {
             domain::Stop stop;
             stop.name = request.at("name").AsString();
-            stop.coord = Coordinates{request.at("latitude").AsDouble(), request.at("longitude").AsDouble()};
+            stop.coord = geo::Coordinates{request.at("latitude").AsDouble(), request.at("longitude").AsDouble()}; // вынести в handler&
             std::unordered_map<std::string, int> distances;
             for (auto &[next_stop, distance] : request.at("road_distances").AsMap())
             {
@@ -131,6 +164,26 @@ namespace json_input
             }
             domain::RouteType type = request.at("is_roundtrip").AsBool() ? domain::RouteType::CIRCLE : domain::RouteType::LINEAR;
             return {std::move(route_name), std::move(stops), std::move(type)};
+        };
+
+        svg::Color DecodeColorValue(Node &node)
+        {
+            if (node.IsString())
+            {
+                return std::move(svg::Color{node.AsString()});
+            }
+            else
+            {
+                Array color = node.AsArray();
+                if (color.size() == 3)
+                {
+                    return std::move(svg::Rgb{static_cast<uint8_t>(color[0].AsInt()), static_cast<uint8_t>(color[1].AsInt()), static_cast<uint8_t>(color[2].AsInt())});
+                }
+                else
+                {
+                    return std::move(svg::Rgba{static_cast<uint8_t>(color[0].AsInt()), static_cast<uint8_t>(color[1].AsInt()), static_cast<uint8_t>(color[2].AsInt()), color[3].AsDouble()});
+                }
+            }
         };
     };
 }

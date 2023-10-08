@@ -83,7 +83,7 @@ namespace handlers
             auto segment_end = next(stop_list.begin());
             for (; segment_end != stop_list.end(); segment_end++)
             {
-                route_len += ComputeDistance((*segment_start)->coord, (*segment_end)->coord);
+                route_len += geo::ComputeDistance((*segment_start)->coord, (*segment_end)->coord);
                 segment_start++;
             }
             route_len = route_type == RouteType::LINEAR ? route_len * 2 : route_len;

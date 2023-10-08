@@ -14,7 +14,7 @@ namespace svg
     class Rgb{
         public:
         Rgb()=default;
-        explicit Rgb(uint8_t r, uint8_t g, uint8_t b);
+        Rgb(uint8_t r, uint8_t g, uint8_t b);
         uint8_t red=0;
         uint8_t green=0;
         uint8_t blue=0;
@@ -24,7 +24,7 @@ namespace svg
     {
         public:
             Rgba() = default;
-            explicit Rgba(uint8_t r, uint8_t g, uint8_t b, double a);
+            Rgba(uint8_t r, uint8_t g, uint8_t b, double a);
             double opacity=1;
     };
 

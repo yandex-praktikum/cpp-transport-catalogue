@@ -10,7 +10,7 @@
 
 /*
  * В этом файле вы можете разместить классы/структуры, которые являются частью предметной области (domain)
- * вашего приложения и не зависят от транспортного справочника. Например Автобусные маршруты и Остановки. 
+ * вашего приложения и не зависят от транспортного справочника. Например Автобусные маршруты и Остановки.
  *
  * Их можно было бы разместить и в transport_catalogue.h, однако вынесение их в отдельный
  * заголовочный файл может оказаться полезным, когда дело дойдёт до визуализации карты маршрутов:
@@ -20,9 +20,10 @@
  *
  */
 
-namespace domain{
+namespace domain
+{
 
-  enum class RouteType
+    enum class RouteType
     {
         CIRCLE,
         LINEAR
@@ -32,7 +33,7 @@ namespace domain{
     {
     public:
         std::string name;
-        Coordinates coord;
+        geo::Coordinates coord;
         std::set<std::string_view> route_numbers;
         size_t Hash() const;
 
@@ -55,7 +56,7 @@ namespace domain{
         RouteType type;
     };
 
-     struct StopInfo
+    struct StopInfo
     {
         StopInfo(Stop &&stop, std::unordered_map<std::string, int> &&distances);
         Stop stop;
@@ -70,17 +71,19 @@ namespace domain{
         RouteType type;
     };
 
-    struct Request{
+    struct Request
+    {
         int id;
         std::string type;
         std::string body;
     };
 
-
-    struct RouteStat{
+    struct RouteStat
+    {
         double curvature;
         int length;
         int stop_count;
         int unique_stop_count;
     };
+
 }
