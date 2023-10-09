@@ -8,6 +8,7 @@
 #include <optional>
 #include <variant>
 
+
 using namespace std::literals;
 namespace svg
 {
@@ -209,7 +210,7 @@ namespace svg
             }
             if (line_join_.has_value())
             {
-                out << "stroke-linejoin=\"" << line_join_.value() << "\" "sv;
+                out << "stroke-linejoin=\"" << line_join_.value() << "\""sv;
             }
         }
 

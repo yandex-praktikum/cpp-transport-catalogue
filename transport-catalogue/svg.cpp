@@ -1,4 +1,5 @@
 #include "svg.h"
+#include <sstream>
 
 namespace svg
 {
@@ -28,7 +29,9 @@ namespace svg
     }
     std::string ExtractColor::operator()(Rgba color)
     {
-        return "rgba("s + std::to_string(color.red) + ","s + std::to_string(color.green) + ","s + std::to_string(color.blue) + ","s + std::to_string(color.opacity) + ")"s;
+        std::ostringstream out;
+        out<<"rgba("s <<std::to_string(color.red)<<","s<<std::to_string(color.green)<<","s<<std::to_string(color.blue)<<","s<<color.opacity<<")"s;
+        return out.str();
     }
 
     std::ostream &operator<<(std::ostream &out, const Color &color)
@@ -109,9 +112,10 @@ namespace svg
     {
         auto &out = context.out;
         out << "<circle "sv;
-        RenderAttrs(context);
         out << "cx=\""sv << center_.x << "\" cy=\""sv << center_.y << "\" "sv;
-        out << "r=\""sv << radius_ << "\"/>"sv;
+        out << "r=\" "sv << radius_;
+        RenderAttrs(context);
+        out<< "\"/>"sv;
     }
 
     //-------------Polyline-------------
@@ -125,24 +129,24 @@ namespace svg
     {
         auto &out = context.out;
         out << "<polyline "sv;
-        RenderAttrs(context);
         out << "points=\""sv;
-        bool begin = true;
-        for (const Point &point : vertexes_)
+        auto point_it = vertexes_.begin();
+        if (point_it != vertexes_.end())
         {
-            if (begin)
+            out << (*point_it).x << ","sv << (*point_it).y;
+            ++point_it;
+            while (point_it != vertexes_.end())
             {
-                begin = false;
+                {
+                    out << " "sv << (*point_it).x << ","sv << (*point_it).y;
+                }
+                ++point_it;
             }
-            else
-            {
-                out << " "sv;
-            }
-            out << point.x << ","sv << point.y;
+            out << "\" "sv;
+            RenderAttrs(context);
+            out << "/>"sv;
         }
-        out << "\" />"sv;
     }
-
     //-------------------Text--------------
 
     // Задаёт координаты опорной точки (атрибуты x и y)

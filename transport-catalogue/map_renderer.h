@@ -126,6 +126,9 @@ namespace renderer
             svg::Document route_map;
             SphereProjector projector = MakeProjector(route_list_, settings_);
             PrepareRoutes(route_map, projector, route_list_);
+            void PrepareRouteNumbers(route_map, projector, route_list_);
+            void PrepareStopSymbols(route_map, projector, route_list_);
+            void PrepareStopNames(route_map, projector, route_list_);
             route_map.Render(out);
         }
 
@@ -136,6 +139,9 @@ namespace renderer
 
         SphereProjector MakeProjector(const std::set<std::string_view> &route_list, const RenderSettings &settings);
         void PrepareRoutes(svg::Document &route_map, const SphereProjector projector, const std::set<std::string_view> &route_list);
+        void PrepareRouteNumbers(svg::Document &route_map, const SphereProjector projector, const std::set<std::string_view> &route_list);
+        void PrepareStopSymbols(svg::Document &route_map, const SphereProjector projector, const std::set<std::string_view> &route_list);
+        void PrepareStopNames(svg::Document &route_map, const SphereProjector projector, const std::set<std::string_view> &route_list);
     };
 
 }
