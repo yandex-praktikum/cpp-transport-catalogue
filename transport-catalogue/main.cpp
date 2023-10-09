@@ -18,7 +18,7 @@ int main()
     handler.InitDB(reader.GetDbInfo());
     // reader.ProcessRequests(std::cout);
     renderer.SetSettings(reader.GetRenderSettings())
-        .SetRouteData(handler.GetRoutes())
+        .SetRouteData(handler.GetValidRoutes())
         .SetStopData(handler.GetValidStops())
         .Render(std::cout);
 }

@@ -37,7 +37,7 @@ namespace handlers
 
         std::optional<std::set<std::string_view>> GetStopInfo(const std::string_view &stop_name) const;
 
-        std::set<std::string_view> GetRoutes();
+        std::vector<const domain::Bus*> GetValidRoutes();
         std::vector<const domain::Stop*> GetValidStops();
         
         //----------------------------------

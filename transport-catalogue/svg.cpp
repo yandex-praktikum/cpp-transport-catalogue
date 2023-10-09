@@ -30,7 +30,7 @@ namespace svg
     std::string ExtractColor::operator()(Rgba color)
     {
         std::ostringstream out;
-        out<<"rgba("s <<std::to_string(color.red)<<","s<<std::to_string(color.green)<<","s<<std::to_string(color.blue)<<","s<<color.opacity<<")"s;
+        out << "rgba("s << std::to_string(color.red) << ","s << std::to_string(color.green) << ","s << std::to_string(color.blue) << ","s << color.opacity << ")"s;
         return out.str();
     }
 
@@ -113,9 +113,9 @@ namespace svg
         auto &out = context.out;
         out << "<circle "sv;
         out << "cx=\""sv << center_.x << "\" cy=\""sv << center_.y << "\" "sv;
-        out << "r=\" "sv << radius_;
+        out << "r=\""sv << radius_ << "\" ";
         RenderAttrs(context);
-        out<< "\"/>"sv;
+        out << "/>"sv;
     }
 
     //-------------Polyline-------------
@@ -220,7 +220,6 @@ namespace svg
     {
         auto &out = context.out;
         out << "<text ";
-        RenderAttrs(context);
         out << "x=\""sv << attr_.position.x << "\" "sv;
         out << "y=\"" << attr_.position.y << "\" "sv;
         out << "dx=\"" << attr_.offcet.x << "\" "sv;
@@ -230,10 +229,19 @@ namespace svg
         {
             out << " font-family=\""sv << attr_.font_family << "\""sv;
         }
+        else
+        {
+            out << " "s;
+        }
         if (attr_.font_weight != "")
         {
-            out << " font-weight=\""sv << attr_.font_weight << "\""sv;
+            out << " font-weight=\""sv << attr_.font_weight << "\" "sv;
         }
+        else
+        {
+            out << " "s;
+        }
+        RenderAttrs(context);
         out << ">"sv << text_ << "</text> "sv;
     }
 

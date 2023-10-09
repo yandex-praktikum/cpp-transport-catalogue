@@ -115,7 +115,7 @@ namespace renderer
             : db_(db)
         {
         }
-        MapRenderer &SetRouteData(std::set<std::string_view> &&routes);
+        MapRenderer &SetRouteData(std::vector<const domain::Bus *> &&routes);
         MapRenderer &SetStopData(std::vector<const domain::Stop*> &&stops);
 
         MapRenderer &SetSettings(RenderSettings &&settings);
@@ -125,31 +125,29 @@ namespace renderer
         {
             assert(settings_.color_palette.size() != 0);
             svg::Document route_map;
-            SphereProjector projector = MakeProjector(route_list_, settings_);
-            void PrepareRoutes(route_map, projector, route_list_);
-            void PrepareRouteNumbers(route_map, projector, route_list_);
-            std::set<std::string> valid_stops;
-            for(auto route:route_list_){
-                for (auto stop:route.)
-            }
+            SphereProjector projector = MakeProjector();
+            PrepareRoutes(route_map, projector);
+            PrepareRouteNumbers(route_map, projector);
 
-            void PrepareStopSymbols(route_map, projector, route_list_);
-            void PrepareStopNames(route_map, projector, route_list_);
+
+            PrepareStopSymbols(route_map, projector);
+            PrepareStopNames(route_map, projector);
             route_map.Render(out);
         }
 
     private:
         const transport_db::TransportCatalogue &db_;
         RenderSettings settings_;
-        std::set<std::string_view> route_list_;
+        std::vector<const domain::Bus *> route_list_;
         std::vector<const domain::Stop*> valid_stop_list_;
 
-        SphereProjector MakeProjector(const std::set<std::string_view> &route_list, const RenderSettings &settings);
-        void PrepareRoutes(svg::Document &route_map, const SphereProjector& projector, const std::set<std::string_view> &route_list);
-        void PrepareRouteNumbers(svg::Document &route_map, const SphereProjector& projector, const std::set<std::string_view> &route_list);
-        void PrepareStopSymbols(svg::Document &route_map, const SphereProjector& projector, const std::set<std::string_view> &route_list);
-        void PrepareStopNames(svg::Document &route_map, const SphereProjector& projector, const std::set<std::string_view> &route_list);
-        std::pair<svg::Text,svg::Text> MakeCaption(const svg::Point location, const std::string & name, const svg::Color& color);
+        SphereProjector MakeProjector();
+        void PrepareRoutes(svg::Document &route_map, const SphereProjector& projector);
+        void PrepareRouteNumbers(svg::Document &route_map, const SphereProjector& projector);
+        void PrepareStopSymbols(svg::Document &route_map, const SphereProjector& projector);
+        void PrepareStopNames(svg::Document &route_map, const SphereProjector& projector);
+        std::pair<svg::Text,svg::Text> MakeRouteCaption(const svg::Point location, const std::string & name, const svg::Color& color);
+        std::pair<svg::Text, svg::Text> MakeStopCaption(const svg::Point location, const std::string &name);
     };
 
 }

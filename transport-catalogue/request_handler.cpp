@@ -1,7 +1,7 @@
 #include "request_handler.h"
 #include <algorithm>
 #include <unordered_set>
-#include<execution>
+#include <execution>
 #include "domain.h"
 
 /*
@@ -54,9 +54,9 @@ namespace handlers
         {
             const Bus *route = db_.RouteInfo(route_name);
             RouteStat statistic;
-            double real_len = detail::RealRouteLen(db_, route->stops,route->type);
-            statistic.curvature = real_len/detail::StraightRouteLen(route->stops,route->type);
-            statistic.length=real_len;
+            double real_len = detail::RealRouteLen(db_, route->stops, route->type);
+            statistic.curvature = real_len / detail::StraightRouteLen(route->stops, route->type);
+            statistic.length = real_len;
             statistic.stop_count = route->type == RouteType::CIRCLE ? route->stops.size() : route->stops.size() * 2 - 1;
             statistic.unique_stop_count = detail::CalcUnique(route->stops);
             return statistic;
@@ -66,27 +66,44 @@ namespace handlers
 
     std::optional<std::set<std::string_view>> RequestHandler::GetStopInfo(const std::string_view &stop_name) const
     {
-        if(db_.FindStop(stop_name)){
-            const Stop* stop = db_.StopInfo(stop_name);
+        if (db_.FindStop(stop_name))
+        {
+            const Stop *stop = db_.StopInfo(stop_name);
             return stop->route_numbers;
         }
         return std::nullopt;
     }
 
-    std::set<std::string_view> RequestHandler::GetRoutes()
+    std::vector<const domain::Bus *> RequestHandler::GetValidRoutes()
     {
-        return std::move(db_.GetAllRoutes());
+        auto all_routes = std::move(db_.GetAllRoutes());
+        std::vector<const domain::Bus *> out;
+        for (auto route : all_routes)
+        {
+            auto route_info = db_.RouteInfo(route);
+            if (route_info->stops.size())
+            {
+                out.push_back(route_info);
+            }
+        }
+        std::sort(std::execution::par, out.begin(), out.end(), [](auto &left, auto &right)
+                  { return left->route_number < right->route_number; });
+        return out;
     }
 
-    std::vector<const domain::Stop*> RequestHandler::GetValidStops(){
-         std::set<const domain::Stop*> valid_stops;
-         for (auto route: db_.GetAllRoutes()){
-            for(auto stop: db_.RouteInfo(route)->stops){
+    std::vector<const domain::Stop *> RequestHandler::GetValidStops()
+    {
+        std::set<const domain::Stop *> valid_stops;
+        for (auto route : db_.GetAllRoutes())
+        {
+            for (auto stop : db_.RouteInfo(route)->stops)
+            {
                 valid_stops.insert(stop);
             }
-         }
-         std::vector<const domain::Stop*> out(valid_stops.begin(), valid_stops.end());
-         std::sort(std::execution::par, out.begin(),out.end(), [](auto& left, auto&right){return left->name<right->name;});
+        }
+        std::vector<const domain::Stop *> out(valid_stops.begin(), valid_stops.end());
+        std::sort(std::execution::par, out.begin(), out.end(), [](auto &left, auto &right)
+                  { return left->name < right->name; });
         return out;
     }
 
