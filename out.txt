@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
-  <polyline points="15156.7,21537.7 15588,26013.6 51967.8,15156.7 15588,26013.6 15156.7,21537.7" fill="none" stroke="rgba(73,95,22,0.573356)" stroke-width="77307.4" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-            
