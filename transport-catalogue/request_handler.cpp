@@ -1,6 +1,7 @@
 #include "request_handler.h"
 #include <algorithm>
 #include <unordered_set>
+#include<execution>
 #include "domain.h"
 
 /*
@@ -75,6 +76,18 @@ namespace handlers
     std::set<std::string_view> RequestHandler::GetRoutes()
     {
         return std::move(db_.GetAllRoutes());
+    }
+
+    std::vector<const domain::Stop*> RequestHandler::GetValidStops(){
+         std::set<const domain::Stop*> valid_stops;
+         for (auto route: db_.GetAllRoutes()){
+            for(auto stop: db_.RouteInfo(route)->stops){
+                valid_stops.insert(stop);
+            }
+         }
+         std::vector<const domain::Stop*> out(valid_stops.begin(), valid_stops.end());
+         std::sort(std::execution::par, out.begin(),out.end(), [](auto& left, auto&right){return left->name<right->name;});
+        return out;
     }
 
     namespace detail

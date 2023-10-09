@@ -19,5 +19,6 @@ int main()
     // reader.ProcessRequests(std::cout);
     renderer.SetSettings(reader.GetRenderSettings())
         .SetRouteData(handler.GetRoutes())
+        .SetStopData(handler.GetValidStops())
         .Render(std::cout);
 }
