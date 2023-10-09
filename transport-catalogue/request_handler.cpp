@@ -86,8 +86,8 @@ namespace handlers
                 out.push_back(route_info);
             }
         }
-        std::sort(std::execution::par, out.begin(), out.end(), [](auto &left, auto &right)
-                  { return left->route_number < right->route_number; });
+        // std::sort(std::execution::par, out.begin(), out.end(), [](auto &left, auto &right)
+        //           { return left->route_number < right->route_number; });
         return out;
     }
 

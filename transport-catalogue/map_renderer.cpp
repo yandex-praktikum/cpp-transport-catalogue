@@ -83,7 +83,7 @@ namespace renderer
             auto stop_label = MakeRouteCaption(projector(route->stops.at(0)->coord), route->route_number, settings_.color_palette[route_number % color_palette_size]);
             route_map.Add(stop_label.first);
             route_map.Add(stop_label.second);
-            if (route->type == domain::RouteType::LINEAR)
+            if (route->type == domain::RouteType::LINEAR && route->stops.at(0)!=route->stops.at(route->stops.size()-1))
             {
                 auto stop_label = MakeRouteCaption(projector(route->stops.back()->coord), route->route_number, settings_.color_palette[route_number % color_palette_size]);
                 route_map.Add(stop_label.first);

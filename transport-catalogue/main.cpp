@@ -3,9 +3,6 @@
 #include "request_handler.h"
 #include <iostream>
 
-#ifdef DEBUG
-#include "log_duration.h"
-#endif
 
 int main()
 {
