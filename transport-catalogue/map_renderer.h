@@ -111,8 +111,7 @@ namespace renderer
     class MapRenderer
     {
     public:
-        MapRenderer(const transport_db::TransportCatalogue &db)
-            : db_(db)
+        MapRenderer()
         {
         }
         MapRenderer &SetRouteData(std::vector<const domain::Bus *> &&routes);
@@ -128,15 +127,12 @@ namespace renderer
             SphereProjector projector = MakeProjector();
             PrepareRoutes(route_map, projector);
             PrepareRouteNumbers(route_map, projector);
-
-
             PrepareStopSymbols(route_map, projector);
             PrepareStopNames(route_map, projector);
             route_map.Render(out);
         }
 
     private:
-        const transport_db::TransportCatalogue &db_;
         RenderSettings settings_;
         std::vector<const domain::Bus *> route_list_;
         std::vector<const domain::Stop*> valid_stop_list_;

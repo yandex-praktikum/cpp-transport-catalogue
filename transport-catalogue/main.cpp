@@ -9,13 +9,13 @@ int main()
 
     transport_db::TransportCatalogue tc;
     handlers::RequestHandler handler(tc);
-    json_input::JsonReader reader(std::cin, handler);
-    renderer::MapRenderer renderer(tc);
-    reader.ReadDocument();
+    json_input::JsonReader reader(&handler);
+    renderer::MapRenderer renderer;
+    reader.ReadDocument(std::cin);
+    renderer.SetSettings(reader.GetRenderSettings());
+    handler.SetMapRenderer(&renderer);
     handler.InitDB(reader.GetDbInfo());
-    // reader.ProcessRequests(std::cout);
-    renderer.SetSettings(reader.GetRenderSettings())
-        .SetRouteData(handler.GetValidRoutes())
-        .SetStopData(handler.GetValidStops())
-        .Render(std::cout);
+    reader.ProcessRequests(std::cout);
+    
+        
 }

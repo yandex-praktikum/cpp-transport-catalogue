@@ -1,7 +1,9 @@
 #pragma once
 
 #include "transport_catalogue.h"
+#include "map_renderer.h"
 #include <optional>
+#include <sstream>
 
 /*
  * Здесь можно было бы разместить код обработчика запросов к базе, содержащего логику, которую не
@@ -28,25 +30,44 @@ namespace handlers
         RequestHandler(transport_db::TransportCatalogue &db)
             : db_(db){};
 
-        //-----------db fill requests---------
-        void InitDB(std::pair<const std::vector<domain::StopInfo>, const std::vector<domain::RouteInfo>>&& data);
+        //-----------db requests---------
+        void ReadInfo(){
+
+        }
+        void InitDB(std::pair<const std::vector<domain::StopInfo>, const std::vector<domain::RouteInfo>> &&data);
+       
         //-----------------------------------
         //
         //--------- requests answers --------
         std::optional<domain::RouteStat> GetRouteStat(const std::string_view &bus_name) const;
-
         std::optional<std::set<std::string_view>> GetStopInfo(const std::string_view &stop_name) const;
 
-        std::vector<const domain::Bus*> GetValidRoutes();
-        std::vector<const domain::Stop*> GetValidStops();
-        
-        //----------------------------------
-        // Этот метод будет нужен в следующей части итогового проекта
-        // svg::Document RenderMap() const;
+        std::vector<const domain::Bus *> GetValidRoutes();
+        std::vector<const domain::Stop *> GetValidStops();
+
+        void SetMapRenderer(renderer::MapRenderer *render_ptr)
+        {
+            renderer_ = render_ptr;
+        }
+
+        std::string GetMap()
+        {
+            std::ostringstream out;
+            out<<""s;
+            if(renderer_){
+                renderer_.value()->SetRouteData(GetValidRoutes());
+                renderer_.value()->SetStopData(GetValidStops());
+                renderer_.value()->Render(out);
+            }
+            return out.str();
+        }
+
+
 
     private:
         // RequestHandler использует агрегацию объектов "Транспортный Справочник" и "Визуализатор Карты"
         transport_db::TransportCatalogue &db_;
+        std::optional<renderer::MapRenderer *> renderer_;
 
         void AddStopsInfo(const std::vector<domain::StopInfo> &stops);
         void AddRouteInfo(const std::vector<domain::RouteInfo> &routes);
