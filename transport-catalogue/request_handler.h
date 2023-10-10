@@ -1,6 +1,7 @@
 #pragma once
 
 #include "transport_catalogue.h"
+#include "json_reader.h"
 #include "map_renderer.h"
 #include <optional>
 #include <sstream>
@@ -31,14 +32,26 @@ namespace handlers
             : db_(db){};
 
         //-----------db requests---------
-        void ReadInfo(){
+        template<typename InStream>
+        void ReadData(InStream& in){
+            reader_->ReadDocument(in);
+        };
 
+        void InitDB();
+
+        void ProcessRequests(){
+            auto requests = reader_->GetRequests();
+            for(auto request_it= requests.begin(); request_it!=requests.end(); request_it++){
+                auto request_ptr = *request_it.GetType();
+                if (answer_ptr->get()->GetType() == domain::AnswerType::STOP_INFO)
+            }
         }
-        void InitDB(std::pair<const std::vector<domain::StopInfo>, const std::vector<domain::RouteInfo>> &&data);
        
         //-----------------------------------
         //
         //--------- requests answers --------
+        
+
         std::optional<domain::RouteStat> GetRouteStat(const std::string_view &bus_name) const;
         std::optional<std::set<std::string_view>> GetStopInfo(const std::string_view &stop_name) const;
 
@@ -47,17 +60,22 @@ namespace handlers
 
         void SetMapRenderer(renderer::MapRenderer *render_ptr)
         {
-            renderer_ = render_ptr;
+            map_renderer_ = render_ptr;
+        }
+
+         void SetReader(json_input::JsonReader* reader)
+        {
+            reader_ = reader;
         }
 
         std::string GetMap()
         {
             std::ostringstream out;
             out<<""s;
-            if(renderer_){
-                renderer_.value()->SetRouteData(GetValidRoutes());
-                renderer_.value()->SetStopData(GetValidStops());
-                renderer_.value()->Render(out);
+            if(map_renderer_){
+                map_renderer_.value()->SetRouteData(GetValidRoutes());
+                map_renderer_.value()->SetStopData(GetValidStops());
+                map_renderer_.value()->Render(out);
             }
             return out.str();
         }
@@ -67,7 +85,8 @@ namespace handlers
     private:
         // RequestHandler использует агрегацию объектов "Транспортный Справочник" и "Визуализатор Карты"
         transport_db::TransportCatalogue &db_;
-        std::optional<renderer::MapRenderer *> renderer_;
+        json_input::JsonReader* reader_;
+        std::optional<renderer::MapRenderer *> map_renderer_;
 
         void AddStopsInfo(const std::vector<domain::StopInfo> &stops);
         void AddRouteInfo(const std::vector<domain::RouteInfo> &routes);

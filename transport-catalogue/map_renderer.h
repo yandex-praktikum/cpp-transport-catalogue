@@ -19,7 +19,8 @@ namespace renderer
         bool LessThenError(double value);
 
     }
-    struct RenderSettings
+   
+   struct RenderSettings
     {
         double width;
         double height;

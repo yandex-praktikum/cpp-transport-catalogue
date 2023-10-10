@@ -64,4 +64,50 @@ namespace json_input
         }
         return render_settings;
     }
+
+     domain::StopInfo JsonReader::ProcessStopInfo(Dict &&request)
+        {
+            domain::Stop stop;
+            stop.name = request.at("name").AsString();
+            stop.coord = geo::Coordinates{request.at("latitude").AsDouble(), request.at("longitude").AsDouble()}; // вынести в handler&
+            std::unordered_map<std::string, int> distances;
+            for (auto &[next_stop, distance] : request.at("road_distances").AsMap())
+            {
+                distances[next_stop] = distance.AsInt();
+            }
+            return {std::move(stop), std::move(distances)};
+        };
+
+        domain::RouteInfo JsonReader::ProcessRouteInfo(Dict &&request)
+        {
+            std::vector<std::string> stops;
+            std::string route_name = std::move(request.at("name").AsString());
+            for (auto &stop : request.at("stops").AsArray())
+            {
+                stops.push_back(std::move(stop.AsString()));
+            }
+            domain::RouteType type = request.at("is_roundtrip").AsBool() ? domain::RouteType::CIRCLE : domain::RouteType::LINEAR;
+            return {std::move(route_name), std::move(stops), std::move(type)};
+        };
+
+         svg::Color JsonReader::DecodeColorValue(Node &node)
+        {
+            if (node.IsString())
+            {
+                return std::move(svg::Color{node.AsString()});
+            }
+            else
+            {
+                Array color = node.AsArray();
+                if (color.size() == 3)
+                {
+                    return std::move(svg::Rgb{static_cast<uint8_t>(color[0].AsInt()), static_cast<uint8_t>(color[1].AsInt()), static_cast<uint8_t>(color[2].AsInt())});
+                }
+                else
+                {
+                    return std::move(svg::Rgba{static_cast<uint8_t>(color[0].AsInt()), static_cast<uint8_t>(color[1].AsInt()), static_cast<uint8_t>(color[2].AsInt()), color[3].AsDouble()});
+                }
+            }
+        };
 }
+

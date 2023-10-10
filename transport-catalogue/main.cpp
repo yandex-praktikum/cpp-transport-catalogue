@@ -8,14 +8,21 @@ int main()
 {
 
     transport_db::TransportCatalogue tc;
-    handlers::RequestHandler handler(tc);
-    json_input::JsonReader reader(&handler);
+    json_input::JsonReader reader;
     renderer::MapRenderer renderer;
-    reader.ReadDocument(std::cin);
-    renderer.SetSettings(reader.GetRenderSettings());
+    handlers::RequestHandler handler(tc);
+    handler.SetReader(&reader);
     handler.SetMapRenderer(&renderer);
-    handler.InitDB(reader.GetDbInfo());
-    reader.ProcessRequests(std::cout);
+    handler.ReadData(std::cin);
+    handler.InitDB();
+    
+    
+    
+    // reader.ReadDocument(std::cin);
+    // renderer.SetSettings(reader.GetRenderSettings());
+    // handler.SetMapRenderer(&renderer);
+    // handler.InitDB(reader.GetDbInfo());
+    // handler.ProcessRequests(std::cout);
     
         
 }

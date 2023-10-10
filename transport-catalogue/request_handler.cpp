@@ -16,8 +16,9 @@ namespace handlers
 {
     using namespace domain;
 
-    void RequestHandler::InitDB(std::pair<const std::vector<domain::StopInfo>, const std::vector<domain::RouteInfo>> &&data)
+    void RequestHandler::InitDB()
     {
+        auto data= reader_->GetDbInfo();
         AddStopsInfo(data.first);
         AddRouteInfo(data.second);
     }
