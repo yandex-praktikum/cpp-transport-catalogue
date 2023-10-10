@@ -32,25 +32,41 @@ namespace handlers
             : db_(db){};
 
         //-----------db requests---------
-        template<typename InStream>
-        void ReadData(InStream& in){
+        template <typename InStream>
+        void ReadData(InStream &in)
+        {
             reader_->ReadDocument(in);
         };
 
         void InitDB();
 
-        void ProcessRequests(){
+        template <typename OutStream>
+        void ProcessRequests(OutStream &out)
+        {
             auto requests = reader_->GetRequests();
-            for(auto request_it= requests.begin(); request_it!=requests.end(); request_it++){
-                auto request_ptr = *request_it.GetType();
-                if (answer_ptr->get()->GetType() == domain::AnswerType::STOP_INFO)
+            std::vector<std::unique_ptr<domain::Answer>> answers;
+            for (auto request_it = requests.begin(); request_it != requests.end(); request_it++)
+            {
+                if (request_it->get()->GetType() == domain::RequestType::ROUTE_QUERY)
+                {
+                    domain::GetRouteRequest *request = dynamic_cast<domain::GetRouteRequest *>(request_it->get());
+                    auto info = GetRouteStat(request->GetRouteName())
+                    if (info){
+                        
+                    }
+                }
+                else if (request_it->get()->GetType() == domain::RequestType::STOP_QUERY)
+                {
+                }
+                else
+                { // render map
+                }
             }
         }
-       
+
         //-----------------------------------
         //
         //--------- requests answers --------
-        
 
         std::optional<domain::RouteStat> GetRouteStat(const std::string_view &bus_name) const;
         std::optional<std::set<std::string_view>> GetStopInfo(const std::string_view &stop_name) const;
@@ -63,7 +79,7 @@ namespace handlers
             map_renderer_ = render_ptr;
         }
 
-         void SetReader(json_input::JsonReader* reader)
+        void SetReader(json_input::JsonReader *reader)
         {
             reader_ = reader;
         }
@@ -71,8 +87,9 @@ namespace handlers
         std::string GetMap()
         {
             std::ostringstream out;
-            out<<""s;
-            if(map_renderer_){
+            out << ""s;
+            if (map_renderer_)
+            {
                 map_renderer_.value()->SetRouteData(GetValidRoutes());
                 map_renderer_.value()->SetStopData(GetValidStops());
                 map_renderer_.value()->Render(out);
@@ -80,12 +97,10 @@ namespace handlers
             return out.str();
         }
 
-
-
     private:
         // RequestHandler использует агрегацию объектов "Транспортный Справочник" и "Визуализатор Карты"
         transport_db::TransportCatalogue &db_;
-        json_input::JsonReader* reader_;
+        json_input::JsonReader *reader_;
         std::optional<renderer::MapRenderer *> map_renderer_;
 
         void AddStopsInfo(const std::vector<domain::StopInfo> &stops);

@@ -33,8 +33,6 @@ namespace domain
 
     enum class RequestType
     {
-        ADD_STOP,
-        ADD_ROUTE,
         STOP_QUERY,
         ROUTE_QUERY,
         RENDER_MAP
@@ -67,57 +65,57 @@ namespace domain
         std::optional<int> request_id_;
     };
 
-    class AddStopRequest : public RawRequest
-    {
-    public:
-        AddStopRequest(RequestType type, const std::string &&stop_name, const geo::Coordinates &&coord, std::unordered_map<std::string, int> &&distances)
-            : RawRequest(std::move(type)), name_(stop_name), coords_(coord), distances_(distances)
-        {
-        }
-        std::string GetStopName()
-        {
-            return name_;
-        }
-        geo::Coordinates GetCoords()
-        {
-            return coords_;
-        }
-        std::unordered_map<std::string, int> GetDistances()
-        {
-            return distances_;
-        }
+    // class AddStopRequest : public RawRequest
+    // {
+    // public:
+    //     AddStopRequest(RequestType type, const std::string &&stop_name, const geo::Coordinates &&coord, std::unordered_map<std::string, int> &&distances)
+    //         : RawRequest(std::move(type)), name_(stop_name), coords_(coord), distances_(distances)
+    //     {
+    //     }
+    //     std::string GetStopName()
+    //     {
+    //         return name_;
+    //     }
+    //     geo::Coordinates GetCoords()
+    //     {
+    //         return coords_;
+    //     }
+    //     std::unordered_map<std::string, int> GetDistances()
+    //     {
+    //         return distances_;
+    //     }
 
-    private:
-        std::string name_;
-        geo::Coordinates coords_;
-        std::unordered_map<std::string, int> distances_;
-    };
+    // private:
+    //     std::string name_;
+    //     geo::Coordinates coords_;
+    //     std::unordered_map<std::string, int> distances_;
+    // };
 
-    class AddRouteRequest : public RawRequest
-    {
-    public:
-        AddRouteRequest(RequestType type, std::string &&route_name, std::vector<std::string> &&stops, RouteType &&route_type)
-            : RawRequest(std::move(type)), name_(route_name), stops_(stops), route_type_(route_type)
-        {
-        }
-        std::string GetStopName()
-        {
-            return name_;
-        }
-        std::vector<std::string> GetStopsList()
-        {
-            return stops_;
-        }
-        RouteType GetDistances()
-        {
-            return route_type_;
-        }
+    // class AddRouteRequest : public RawRequest
+    // {
+    // public:
+    //     AddRouteRequest(RequestType type, std::string &&route_name, std::vector<std::string> &&stops, RouteType &&route_type)
+    //         : RawRequest(std::move(type)), name_(route_name), stops_(stops), route_type_(route_type)
+    //     {
+    //     }
+    //     std::string GetStopName()
+    //     {
+    //         return name_;
+    //     }
+    //     std::vector<std::string> GetStopsList()
+    //     {
+    //         return stops_;
+    //     }
+    //     RouteType GetDistances()
+    //     {
+    //         return route_type_;
+    //     }
 
-    private:
-        std::string name_;
-        std::vector<std::string> stops_;
-        RouteType route_type_;
-    };
+    // private:
+    //     std::string name_;
+    //     std::vector<std::string> stops_;
+    //     RouteType route_type_;
+    // };
 
     class GetRouteRequest : public RawRequest
     {
@@ -127,7 +125,7 @@ namespace domain
         {
             SetId(id);
         }
-        std::string GetStopName()
+        std::string GetRouteName()
         {
             return name_;
         }
