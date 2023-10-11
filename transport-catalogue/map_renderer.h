@@ -2,14 +2,14 @@
 
 #include "geo.h"
 #include "svg.h"
-
+#include "domain.h"
 #include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <optional>
 #include <vector>
 #include <cassert>
-#include "transport_catalogue.h"
+//#include "transport_catalogue.h"
 
 namespace renderer
 {
@@ -39,7 +39,6 @@ namespace renderer
     class SphereProjector
     {
     public:
-        // points_begin и points_end задают начало и конец интервала элементов geo::Coordinates
         template <typename PointInputIt>
         SphereProjector(PointInputIt points_begin, PointInputIt points_end,
                         double max_width, double max_height, double padding)

@@ -43,24 +43,12 @@ namespace domain
     class RawRequest
     {
     public:
-        explicit RawRequest(RequestType &&type)
-            : type_(type)
-        {
-        }
+        explicit RawRequest(RequestType &&type);
         virtual ~RawRequest() = default;
 
-        RequestType GetType()
-        {
-            return type_;
-        }
-        void SetId(int id)
-        {
-            request_id_ = id;
-        }
-        int GetId() const
-        {
-            return request_id_ ? request_id_.value() : 0;
-        }
+        RequestType GetType();
+        void SetId(int id);
+        int GetId() const;
 
     private:
         RequestType type_;
@@ -70,22 +58,11 @@ namespace domain
     class AddStopRequest : public RawRequest
     {
     public:
-        AddStopRequest(RequestType type, const std::string &&stop_name, const geo::Coordinates &&coord, std::unordered_map<std::string, int> &&distances)
-            : RawRequest(std::move(type)), name_(stop_name), coords_(coord), distances_(distances)
-        {
-        }
-        std::string GetStopName()
-        {
-            return name_;
-        }
-        geo::Coordinates GetCoords()
-        {
-            return coords_;
-        }
-        std::unordered_map<std::string, int> GetDistances()
-        {
-            return distances_;
-        }
+        explicit AddStopRequest(RequestType type, const std::string &&stop_name, const geo::Coordinates &&coord, std::unordered_map<std::string, int> &&distances);
+          
+        std::string GetStopName();
+        geo::Coordinates GetCoords();
+        std::unordered_map<std::string, int> GetDistances();
 
     private:
         std::string name_;
@@ -96,22 +73,11 @@ namespace domain
     class AddRouteRequest : public RawRequest
     {
     public:
-        AddRouteRequest(RequestType type, std::string &&route_name, std::vector<std::string> &&stops, RouteType &&route_type)
-            : RawRequest(std::move(type)), name_(route_name), stops_(stops), route_type_(route_type)
-        {
-        }
-        std::string GetRouteName()
-        {
-            return name_;
-        }
-        std::vector<std::string> GetStopsList()
-        {
-            return stops_;
-        }
-        RouteType GetType()
-        {
-            return route_type_;
-        }
+        explicit AddRouteRequest(RequestType type, std::string &&route_name, std::vector<std::string> &&stops, RouteType &&route_type);
+
+        std::string GetRouteName();
+        std::vector<std::string> GetStopsList();
+        RouteType GetType();
 
     private:
         std::string name_;
@@ -122,15 +88,9 @@ namespace domain
     class GetRouteRequest : public RawRequest
     {
     public:
-        GetRouteRequest(RequestType type, std::string &&route_name, int id)
-            : RawRequest(std::move(type)), name_(route_name)
-        {
-            SetId(id);
-        }
-        std::string GetRouteName()
-        {
-            return name_;
-        }
+       explicit GetRouteRequest(RequestType type, std::string &&route_name, int id);
+
+        std::string GetRouteName();
 
     private:
         std::string name_;
@@ -139,15 +99,9 @@ namespace domain
     class GetStopRequest : public RawRequest
     {
     public:
-        GetStopRequest(RequestType type, std::string &&stop_name, int id)
-            : RawRequest(std::move(type)), name_(stop_name)
-        {
-            SetId(id);
-        }
-        std::string GetStopName()
-        {
-            return name_;
-        }
+       explicit GetStopRequest(RequestType type, std::string &&stop_name, int id);
+            
+        std::string GetStopName();
 
     private:
         std::string name_;
@@ -156,11 +110,7 @@ namespace domain
     class RenderMapRequest : public RawRequest
     {
     public:
-        RenderMapRequest(RequestType type, int id)
-            : RawRequest(std::move(type))
-        {
-            SetId(id);
-        }
+       explicit RenderMapRequest(RequestType type, int id);
     };
 
     //-----------------answer classes------------
@@ -177,18 +127,11 @@ namespace domain
     class Answer
     {
     public:
-        explicit Answer(AnswerType &&type, int id)
-            : type_(type), id_(id){};
+        explicit Answer(AnswerType &&type, int id);
         virtual ~Answer() = default;
-        int GetId()
-        {
-            return id_;
-        }
 
-        AnswerType GetType()
-        {
-            return type_;
-        }
+        int GetId();
+        AnswerType GetType();
 
     private:
         AnswerType type_;
@@ -198,18 +141,10 @@ namespace domain
     class StopInfoAnswer : public Answer
     {
     public:
-        StopInfoAnswer(AnswerType type, int id, std::set<std::string_view> routes)
-            : Answer(std::move(type), id), routes_(std::move(routes)){};
+        explicit StopInfoAnswer(AnswerType type, int id, std::set<std::string_view> routes);
 
-        std::string GetName()
-        {
-            return std::move(name_);
-        }
-
-        std::set<std::string_view> GetRoutes()
-        {
-            return std::move(routes_);
-        }
+        std::string GetName();
+        std::set<std::string_view> GetRoutes();
 
     private:
         std::string name_;
@@ -219,31 +154,13 @@ namespace domain
     class RouteInfoAnswer : public Answer
     {
     public:
-        explicit RouteInfoAnswer(AnswerType type, int id, std::string name, double curvature, int route_length, int stop_count, int unique_stop_count)
-            : Answer(std::move(type), id), name_(std::move(name)), curvature_(curvature), route_length_(route_length),
-              stop_count_(stop_count), unique_stop_count_(unique_stop_count){};
+        explicit RouteInfoAnswer(AnswerType type, int id, std::string name, double curvature, int route_length, int stop_count, int unique_stop_count);
 
-        std::string GetName()
-        {
-            return std::move(name_);
-        }
-
-        double GetCurv()
-        {
-            return curvature_;
-        }
-        int GetLen()
-        {
-            return route_length_;
-        }
-        int GetStops()
-        {
-            return stop_count_;
-        }
-        int GetUniqueStops()
-        {
-            return unique_stop_count_;
-        }
+        std::string GetName();
+        double GetCurv();
+        int GetLen();
+        int GetStops();
+        int GetUniqueStops();
 
     private:
         std::string name_;
@@ -256,14 +173,8 @@ namespace domain
     class MapContentAnswer : public Answer
     {
     public:
-        MapContentAnswer(AnswerType type, int id, std::string &&rendered_map)
-            : Answer(std::move(type), id), map_(rendered_map){};
-
-        std::string GetMap()
-        {
-            return std::move(map_);
-        }
-
+        explicit MapContentAnswer(AnswerType type, int id, std::string &&rendered_map);
+        std::string GetMap();
     private:
         std::string map_;
     };
@@ -271,13 +182,9 @@ namespace domain
     class ErrorAnswer : public Answer
     {
     public:
-        ErrorAnswer(AnswerType type, int id)
-            : Answer(std::move(type), id){};
+        explicit ErrorAnswer(AnswerType type, int id);
 
-        std::string GetError()
-        {
-            return std::move(error_);
-        }
+        std::string GetError();
 
     private:
         std::string error_ = "not found";
@@ -325,35 +232,12 @@ namespace domain
         RouteType type;
     };
 
-    // struct Request // нужен ли?
-    // {
-    //     int id;
-    //     std::string type;
-    //     std::string body;
-    // };
-
     struct RouteStat
     {
         double curvature;
         int length;
         int stop_count;
         int unique_stop_count;
-    };
-
-    struct RenderSettings
-    {
-        double width;
-        double height;
-        double padding;
-        double line_width;
-        double stop_radius;
-        int bus_label_font_size;
-        std::vector<double> bus_label_offset;
-        int stop_label_font_size;
-        std::vector<double> stop_label_offset;
-        std::string underlayer_color;
-        double underlayer_width;
-        std::vector<std::string> color_palette;
     };
 
 }

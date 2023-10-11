@@ -44,7 +44,7 @@ namespace handlers
         }
 
         //---------------Process requests section----------
-        
+
         template <typename OutStream>
         void ProcessRequests(OutStream &out)
         {
@@ -91,9 +91,7 @@ namespace handlers
     namespace detail
     {
         double StraightRouteLen(const std::vector<domain::Stop *> &stop_list, const domain::RouteType &route_type);
-
         double RealRouteLen(const transport_db::TransportCatalogue &tc, const std::vector<domain::Stop *> &stop_list, const domain::RouteType &route_type);
-
         int CalcUnique(const std::vector<domain::Stop *> &stops);
     }
 }

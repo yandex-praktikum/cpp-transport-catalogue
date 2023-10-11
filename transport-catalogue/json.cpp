@@ -306,6 +306,10 @@ namespace json
         return indent_ / indent_step_;
     }
 
+    Node::Node(std::nullptr_t)
+        : Node()
+    {
+    }
     Node::Node(bool value)
         : keep_(std::move(Keep(value)))
     {

@@ -6,6 +6,30 @@ namespace svg
 
     using namespace std::literals;
 
+    RenderContext::RenderContext(std::ostream &out)
+        : out(out)
+    {
+    }
+    RenderContext::RenderContext(std::ostream &out, int indent_step, int indent)
+        : out(out), indent_step(indent_step), indent(indent)
+    {
+    }
+    RenderContext RenderContext::Indented() const
+    {
+        return {out, indent_step, indent + indent_step};
+    }
+    void RenderContext::RenderIndent() const
+    {
+        for (int i = 0; i < indent; ++i)
+        {
+            out.put(' ');
+        }
+    }
+
+
+
+
+
     Rgb::Rgb(uint8_t r, uint8_t g, uint8_t b)
         : red(r), green(g), blue(b)
     {

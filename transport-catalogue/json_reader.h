@@ -25,36 +25,7 @@ namespace json_reader
             return *this;
         }
 
-        std::vector<std::unique_ptr<domain::RawRequest>> GetRequests()
-        {
-            std::vector<std::unique_ptr<domain::RawRequest>> request_list;
-            if (root_.count("stat_requests"s))
-            {
-                const Array &requests = root_.at("stat_requests"s).AsArray();
-                for (const Node &node : requests)
-                {
-                    Dict request = node.AsMap();
-                    if (request.at("type"s).AsString() == "Stop"s)
-                    {
-                        std::string stop_name = request.at("name").AsString();
-                        int id = request.at("id").AsInt();
-                        request_list.push_back(std::move(std::make_unique<domain::GetStopRequest>(domain::GetStopRequest(domain::RequestType::STOP_QUERY, std::move(stop_name), id))));
-                    }
-                    else if (request.at("type"s).AsString() == "Bus"s)
-                    {
-                        std::string stop_name = request.at("name").AsString();
-                        int id = request.at("id").AsInt();
-                        request_list.push_back(std::move(std::make_unique<domain::GetRouteRequest>(domain::GetRouteRequest(domain::RequestType::ROUTE_QUERY, std::move(stop_name), id))));
-                    }
-                    else
-                    {
-                        int id = request.at("id").AsInt();
-                        request_list.push_back(std::move(std::make_unique<domain::RenderMapRequest>(domain::RenderMapRequest(domain::RequestType::RENDER_MAP, id))));
-                    }
-                }
-            }
-            return request_list;
-        }
+        std::vector<std::unique_ptr<domain::RawRequest>> GetRequests();
 
         template <typename OutStream>
         void ProcessAnswers(std::vector<std::unique_ptr<domain::Answer>> in, OutStream &out)
@@ -100,17 +71,14 @@ namespace json_reader
         }
 
         std::pair<const std::vector<std::unique_ptr<domain::RawRequest>>, const std::vector<std::unique_ptr<domain::RawRequest>>> GetDbInfo();
+
         renderer::RenderSettings GetRenderSettings();
 
     private:
         Dict root_;
         std::set<std::string> existing_routes_;
-
         std::unique_ptr<domain::RawRequest> ProcessStopInfo(Dict &&request);
-
-
         std::unique_ptr<domain::RawRequest> ProcessRouteInfo(Dict &&request);
-
         svg::Color DecodeColorValue(Node &node);
         
     };

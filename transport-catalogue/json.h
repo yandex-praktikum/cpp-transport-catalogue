@@ -40,11 +40,9 @@ namespace json
     class Node
     {
     public:
-        /* Реализуйте Node, используя std::variant */
         using Keep = std::variant<std::nullptr_t, bool, int, double, std::string, Array, Dict>;
         Node()=default;
-        Node(std::nullptr_t)
-        :Node(){};
+        Node(std::nullptr_t);
         Node(bool value);
         Node(int value);
         Node(double value);
