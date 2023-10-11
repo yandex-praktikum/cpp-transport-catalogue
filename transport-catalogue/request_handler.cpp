@@ -70,7 +70,6 @@ namespace handlers
         if (db_.FindRote(route_name))
         {
             const Bus *route = db_.RouteInfo(route_name);
-            RouteStat statistic;
             int real_len = static_cast<int>(detail::RealRouteLen(db_, route->stops, route->type));
             double curvature = real_len / detail::StraightRouteLen(route->stops, route->type);
             int stop_count = route->type == RouteType::CIRCLE ? route->stops.size() : route->stops.size() * 2 - 1;

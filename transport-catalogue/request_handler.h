@@ -32,9 +32,6 @@ namespace handlers
 
         //---------------init section-----------
         
-        
-        
-
         void SetReader(json_reader::JsonReader *reader);
 
         void SetMapRenderer(renderer::MapRenderer *render_ptr);
@@ -44,8 +41,10 @@ namespace handlers
         {
             reader_->ReadDocument(in);
             InitDB();
-        };
+        }
+
         //---------------Process requests section----------
+        
         template <typename OutStream>
         void ProcessRequests(OutStream &out)
         {

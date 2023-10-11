@@ -23,7 +23,7 @@ namespace json_reader
             Document encoded_json = json::Load(in);
             root_ = std::move(encoded_json.GetRoot().AsMap());
             return *this;
-        };
+        }
 
         std::vector<std::unique_ptr<domain::RawRequest>> GetRequests()
         {
@@ -53,7 +53,7 @@ namespace json_reader
                     }
                 }
             }
-            return std::move(request_list);
+            return request_list;
         }
 
         template <typename OutStream>

@@ -191,8 +191,8 @@ namespace domain
         }
 
     private:
-        int id_;
         AnswerType type_;
+        int id_;
     };
 
     class StopInfoAnswer : public Answer

@@ -76,7 +76,7 @@ namespace json_reader
                 distances[next_stop] = distance.AsInt();
             }
             return std::move(std::make_unique<domain::AddStopRequest>(domain::AddStopRequest{domain::RequestType::ADD_STOP, std::move(name), std::move(coord), std::move(distances)}));
-        };
+        }
 
         std::unique_ptr<domain::RawRequest> JsonReader::ProcessRouteInfo(Dict &&request)
         {
@@ -88,7 +88,7 @@ namespace json_reader
             }
             domain::RouteType type = request.at("is_roundtrip").AsBool() ? domain::RouteType::CIRCLE : domain::RouteType::LINEAR;
             return std::move(std::make_unique<domain::AddRouteRequest>(domain::AddRouteRequest{domain::RequestType::ADD_ROUTE, std::move(route_name), std::move(stops), std::move(type)}));;
-        };
+        }
 
          svg::Color JsonReader::DecodeColorValue(Node &node)
         {
@@ -108,6 +108,6 @@ namespace json_reader
                     return std::move(svg::Rgba{static_cast<uint8_t>(color[0].AsInt()), static_cast<uint8_t>(color[1].AsInt()), static_cast<uint8_t>(color[2].AsInt()), color[3].AsDouble()});
                 }
             }
-        };
+        }
 }
 
