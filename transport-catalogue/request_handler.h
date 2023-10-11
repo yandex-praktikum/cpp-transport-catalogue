@@ -1,10 +1,10 @@
 #pragma once
-
 #include "transport_catalogue.h"
 #include "json_reader.h"
 #include "map_renderer.h"
 #include <optional>
 #include <sstream>
+#include <memory>
 
 /*
  * Здесь можно было бы разместить код обработчика запросов к базе, содержащего логику, которую не
@@ -26,20 +26,26 @@ namespace handlers
     class RequestHandler
     {
     public:
-        // MapRenderer понадобится в следующей части итогового проекта
-        // RequestHandler(const transport_db::TransportCatalogue& db, const renderer::MapRenderer& renderer);
+        
         RequestHandler(transport_db::TransportCatalogue &db)
             : db_(db){};
 
-        //-----------db requests---------
+        //---------------init section-----------
+        
+        
+        
+
+        void SetReader(json_reader::JsonReader *reader);
+
+        void SetMapRenderer(renderer::MapRenderer *render_ptr);
+
         template <typename InStream>
         void ReadData(InStream &in)
         {
             reader_->ReadDocument(in);
+            InitDB();
         };
-
-        void InitDB();
-
+        //---------------Process requests section----------
         template <typename OutStream>
         void ProcessRequests(OutStream &out)
         {
@@ -50,62 +56,37 @@ namespace handlers
                 if (request_it->get()->GetType() == domain::RequestType::ROUTE_QUERY)
                 {
                     domain::GetRouteRequest *request = dynamic_cast<domain::GetRouteRequest *>(request_it->get());
-                    auto info = GetRouteStat(request->GetRouteName())
-                    if (info){
-                        
-                    }
+                    answers.push_back(std::move(GetRouteStat(request->GetRouteName(), request->GetId())));
                 }
                 else if (request_it->get()->GetType() == domain::RequestType::STOP_QUERY)
                 {
+                    domain::GetStopRequest *request = dynamic_cast<domain::GetStopRequest *>(request_it->get());
+                    answers.push_back(std::move(GetStopInfo(request->GetStopName(), request->GetId())));
                 }
                 else
-                { // render map
+                {
+                    domain::RenderMapRequest *request = dynamic_cast<domain::RenderMapRequest *>(request_it->get());
+                    map_renderer_.value()->SetSettings(reader_->GetRenderSettings());
+                    answers.push_back(std::move(GetMap(request->GetId())));
                 }
             }
-        }
-
-        //-----------------------------------
-        //
-        //--------- requests answers --------
-
-        std::optional<domain::RouteStat> GetRouteStat(const std::string_view &bus_name) const;
-        std::optional<std::set<std::string_view>> GetStopInfo(const std::string_view &stop_name) const;
-
-        std::vector<const domain::Bus *> GetValidRoutes();
-        std::vector<const domain::Stop *> GetValidStops();
-
-        void SetMapRenderer(renderer::MapRenderer *render_ptr)
-        {
-            map_renderer_ = render_ptr;
-        }
-
-        void SetReader(json_input::JsonReader *reader)
-        {
-            reader_ = reader;
-        }
-
-        std::string GetMap()
-        {
-            std::ostringstream out;
-            out << ""s;
-            if (map_renderer_)
-            {
-                map_renderer_.value()->SetRouteData(GetValidRoutes());
-                map_renderer_.value()->SetStopData(GetValidStops());
-                map_renderer_.value()->Render(out);
-            }
-            return out.str();
+            reader_->ProcessAnswers(std::move(answers), out);
         }
 
     private:
         // RequestHandler использует агрегацию объектов "Транспортный Справочник" и "Визуализатор Карты"
         transport_db::TransportCatalogue &db_;
-        json_input::JsonReader *reader_;
+        json_reader::JsonReader *reader_;
         std::optional<renderer::MapRenderer *> map_renderer_;
+        void InitDB();
+        std::unique_ptr<domain::Answer> GetRouteStat(const std::string_view &bus_name, int request_id) const;
+        std::unique_ptr<domain::Answer> GetStopInfo(const std::string_view &stop_name, int request_id) const;
+        std::vector<const domain::Bus *> GetValidRoutes();
+        std::vector<const domain::Stop *> GetValidStops();
+        std::unique_ptr<domain::Answer> GetMap(int request_id);
+        void AddStopsInfo(const std::vector<std::unique_ptr<domain::RawRequest>> &&stops);
+        void AddRouteInfo(const std::vector<std::unique_ptr<domain::RawRequest>> &&routes);
 
-        void AddStopsInfo(const std::vector<domain::StopInfo> &stops);
-        void AddRouteInfo(const std::vector<domain::RouteInfo> &routes);
-        // const renderer::MapRenderer& renderer_;
     };
 
     namespace detail

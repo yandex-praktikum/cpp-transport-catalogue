@@ -18,61 +18,98 @@ namespace handlers
 
     void RequestHandler::InitDB()
     {
-        auto data= reader_->GetDbInfo();
-        AddStopsInfo(data.first);
-        AddRouteInfo(data.second);
+        auto db_fill_requests = reader_->GetDbInfo();
+        AddStopsInfo(std::move(db_fill_requests.first));
+        AddRouteInfo(std::move(db_fill_requests.second));
     }
 
-    void RequestHandler::AddStopsInfo(const std::vector<StopInfo> &stops)
+    void RequestHandler::SetReader(json_reader::JsonReader *reader)
+    {
+        reader_ = reader;
+    }
+
+    void RequestHandler::SetMapRenderer(renderer::MapRenderer *render_ptr)
+    {
+        map_renderer_ = render_ptr;
+    }
+
+    void RequestHandler::AddStopsInfo(const std::vector<std::unique_ptr<domain::RawRequest>> &&stops)
     {
 
         std::for_each(stops.begin(), stops.end(),
                       [&](auto &data)
                       {
-                          db_.AddStop(data.stop);
+                          domain::AddStopRequest *stop_data = dynamic_cast<domain::AddStopRequest *>(data.get());
+                          Stop stop;
+                          stop.name= std::move(stop_data->GetStopName());
+                          stop.coord = std::move(stop_data->GetCoords());
+                          db_.AddStop(stop);
                       });
         std::for_each(stops.begin(), stops.end(),
-                      [&](auto &stop_data)
+                      [&](auto &data)
                       {
-                          for (const auto &[next_stop, distance] : stop_data.distances)
+                          domain::AddStopRequest *stop_data = dynamic_cast<domain::AddStopRequest *>(data.get());
+                          for (const auto &[next_stop, distance] : stop_data->GetDistances())
                           {
-                              db_.AddSegment(stop_data.stop.name, next_stop, distance);
+                              db_.AddSegment(stop_data->GetStopName(), next_stop, distance);
                           }
                       });
     }
-    void RequestHandler::AddRouteInfo(const std::vector<RouteInfo> &routes)
+    void RequestHandler::AddRouteInfo(const std::vector<std::unique_ptr<domain::RawRequest>> &&routes)
     {
         std::for_each(routes.begin(), routes.end(),
                       [&](auto &route)
                       {
-                          db_.AddRoute(route.name, route.stops, route.type);
+                        domain::AddRouteRequest *route_data = dynamic_cast<domain::AddRouteRequest *>(route.get());
+                          db_.AddRoute(route_data->GetRouteName(), route_data->GetStopsList(), route_data->GetType());
                       });
     }
 
-    std::optional<RouteStat> RequestHandler::GetRouteStat(const std::string_view &route_name) const
+    std::unique_ptr<domain::Answer> RequestHandler::GetRouteStat(const std::string_view &route_name, int request_id) const
     {
         if (db_.FindRote(route_name))
         {
             const Bus *route = db_.RouteInfo(route_name);
             RouteStat statistic;
-            double real_len = detail::RealRouteLen(db_, route->stops, route->type);
-            statistic.curvature = real_len / detail::StraightRouteLen(route->stops, route->type);
-            statistic.length = real_len;
-            statistic.stop_count = route->type == RouteType::CIRCLE ? route->stops.size() : route->stops.size() * 2 - 1;
-            statistic.unique_stop_count = detail::CalcUnique(route->stops);
-            return statistic;
+            int real_len = static_cast<int>(detail::RealRouteLen(db_, route->stops, route->type));
+            double curvature = real_len / detail::StraightRouteLen(route->stops, route->type);
+            int stop_count = route->type == RouteType::CIRCLE ? route->stops.size() : route->stops.size() * 2 - 1;
+            int unique_stop_count = detail::CalcUnique(route->stops);
+            return std::move(std::make_unique<domain::RouteInfoAnswer>(domain::RouteInfoAnswer{domain::AnswerType::ROUTE_INFO,
+                                                                                               request_id,
+                                                                                               (std::string)route_name,
+                                                                                               curvature,
+                                                                                               real_len,
+                                                                                               stop_count,
+                                                                                               unique_stop_count}));
         }
-        return std::nullopt;
+        else
+        {
+            return std::move(std::make_unique<domain::ErrorAnswer>(domain::ErrorAnswer{domain::AnswerType::ERROR, request_id}));
+        }
     }
 
-    std::optional<std::set<std::string_view>> RequestHandler::GetStopInfo(const std::string_view &stop_name) const
+    std::unique_ptr<domain::Answer> RequestHandler::GetStopInfo(const std::string_view &stop_name, int request_id) const
     {
         if (db_.FindStop(stop_name))
         {
-            const Stop *stop = db_.StopInfo(stop_name);
-            return stop->route_numbers;
+            auto routes = db_.StopInfo(stop_name)->route_numbers;
+            return std::move(std::make_unique<domain::StopInfoAnswer>(domain::StopInfoAnswer{domain::AnswerType::STOP_INFO, request_id, routes}));
         }
-        return std::nullopt;
+        return std::move(std::make_unique<domain::ErrorAnswer>(domain::ErrorAnswer{domain::AnswerType::ERROR, request_id}));
+    }
+
+    std::unique_ptr<domain::Answer> RequestHandler::GetMap(int request_id)
+    {
+        std::ostringstream out;
+        out << ""s;
+        if (map_renderer_)
+        {
+            map_renderer_.value()->SetRouteData(GetValidRoutes());
+            map_renderer_.value()->SetStopData(GetValidStops());
+            map_renderer_.value()->Render(out);
+        }
+        return std::move(std::make_unique<domain::MapContentAnswer>(domain::MapContentAnswer{domain::AnswerType::MAP, request_id, out.str()}));
     }
 
     std::vector<const domain::Bus *> RequestHandler::GetValidRoutes()
@@ -87,8 +124,6 @@ namespace handlers
                 out.push_back(route_info);
             }
         }
-        // std::sort(std::execution::par, out.begin(), out.end(), [](auto &left, auto &right)
-        //           { return left->route_number < right->route_number; });
         return out;
     }
 

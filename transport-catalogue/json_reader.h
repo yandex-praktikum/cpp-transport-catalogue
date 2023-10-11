@@ -1,12 +1,11 @@
 #pragma once
 #include "json.h"
 #include "domain.h"
-#include "request_handler.h"
 #include "map_renderer.h"
 #include <algorithm>
 #include <memory>
 
-namespace json_input
+namespace json_reader
 {
 
     using namespace json;
@@ -31,7 +30,6 @@ namespace json_input
             std::vector<std::unique_ptr<domain::RawRequest>> request_list;
             if (root_.count("stat_requests"s))
             {
-                std::vector<std::unique_ptr<domain::RawRequest>> out;
                 const Array &requests = root_.at("stat_requests"s).AsArray();
                 for (const Node &node : requests)
                 {
@@ -81,8 +79,8 @@ namespace json_input
                     answers.emplace_back(Node{Dict{{"curvature"s, Node{route_info_ptr->GetCurv()}},
                                                    {"request_id"s, Node{route_info_ptr->GetId()}},
                                                    {"route_length"s, Node{route_info_ptr->GetLen()}},
-                                                   {"stop_count", Node{route_info_ptr->GetStops}},
-                                                   {"unique_stop_count", Node{route_info_ptr->GetUniqueStops}}}});
+                                                   {"stop_count", Node{route_info_ptr->GetStops()}},
+                                                   {"unique_stop_count", Node{route_info_ptr->GetUniqueStops()}}}});
                 }
                 else if (answer_ptr->get()->GetType() == domain::AnswerType::MAP)
                 {
@@ -101,17 +99,17 @@ namespace json_input
             json::Print(result, out);
         }
 
-        std::pair<const std::vector<domain::StopInfo>, const std::vector<domain::RouteInfo>> GetDbInfo();
+        std::pair<const std::vector<std::unique_ptr<domain::RawRequest>>, const std::vector<std::unique_ptr<domain::RawRequest>>> GetDbInfo();
         renderer::RenderSettings GetRenderSettings();
 
     private:
         Dict root_;
         std::set<std::string> existing_routes_;
 
-        domain::StopInfo ProcessStopInfo(Dict &&request);
+        std::unique_ptr<domain::RawRequest> ProcessStopInfo(Dict &&request);
 
 
-        domain::RouteInfo ProcessRouteInfo(Dict &&request);
+        std::unique_ptr<domain::RawRequest> ProcessRouteInfo(Dict &&request);
 
         svg::Color DecodeColorValue(Node &node);
         

@@ -145,6 +145,7 @@ namespace renderer
         void PrepareStopNames(svg::Document &route_map, const SphereProjector& projector);
         std::pair<svg::Text,svg::Text> MakeRouteCaption(const svg::Point location, const std::string & name, const svg::Color& color);
         std::pair<svg::Text, svg::Text> MakeStopCaption(const svg::Point location, const std::string &name);
+       
     };
 
 }

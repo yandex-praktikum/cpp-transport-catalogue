@@ -7,15 +7,15 @@
  * а также код обработки запросов к базе и формирование массива ответов в формате JSON
  */
 
-namespace json_input
+namespace json_reader
 {
     using namespace json;
     using namespace std::literals;
 
-     std::pair<const std::vector<domain::StopInfo>, const std::vector<domain::RouteInfo>> JsonReader::GetDbInfo()
+     std::pair<const std::vector<std::unique_ptr<domain::RawRequest>>, const std::vector<std::unique_ptr<domain::RawRequest>>> JsonReader::GetDbInfo()
         {
-            std::vector<domain::StopInfo> raw_stop_data;
-            std::vector<domain::RouteInfo> raw_route_data;
+            std::vector<std::unique_ptr<domain::RawRequest>> raw_stop_data;
+            std::vector<std::unique_ptr<domain::RawRequest>> raw_route_data;
             if (root_.count("base_requests"s))
             {
                 Array base_request_ = std::move(root_.at("base_requests"s).AsArray());
@@ -31,7 +31,7 @@ namespace json_input
                         raw_route_data.push_back(std::move(ProcessRouteInfo(std::move(request))));
                     }
                 }
-                return {raw_stop_data, raw_route_data};
+                return {std::move(raw_stop_data), std::move(raw_route_data)};
             }
             return {};
         }
@@ -65,20 +65,20 @@ namespace json_input
         return render_settings;
     }
 
-     domain::StopInfo JsonReader::ProcessStopInfo(Dict &&request)
+    std::unique_ptr<domain::RawRequest> JsonReader::ProcessStopInfo(Dict &&request)
         {
-            domain::Stop stop;
-            stop.name = request.at("name").AsString();
-            stop.coord = geo::Coordinates{request.at("latitude").AsDouble(), request.at("longitude").AsDouble()}; // вынести в handler&
+            
+            std::string name = request.at("name").AsString();
+            geo::Coordinates coord = geo::Coordinates{request.at("latitude").AsDouble(), request.at("longitude").AsDouble()}; // вынести в handler&
             std::unordered_map<std::string, int> distances;
             for (auto &[next_stop, distance] : request.at("road_distances").AsMap())
             {
                 distances[next_stop] = distance.AsInt();
             }
-            return {std::move(stop), std::move(distances)};
+            return std::move(std::make_unique<domain::AddStopRequest>(domain::AddStopRequest{domain::RequestType::ADD_STOP, std::move(name), std::move(coord), std::move(distances)}));
         };
 
-        domain::RouteInfo JsonReader::ProcessRouteInfo(Dict &&request)
+        std::unique_ptr<domain::RawRequest> JsonReader::ProcessRouteInfo(Dict &&request)
         {
             std::vector<std::string> stops;
             std::string route_name = std::move(request.at("name").AsString());
@@ -87,7 +87,7 @@ namespace json_input
                 stops.push_back(std::move(stop.AsString()));
             }
             domain::RouteType type = request.at("is_roundtrip").AsBool() ? domain::RouteType::CIRCLE : domain::RouteType::LINEAR;
-            return {std::move(route_name), std::move(stops), std::move(type)};
+            return std::move(std::make_unique<domain::AddRouteRequest>(domain::AddRouteRequest{domain::RequestType::ADD_ROUTE, std::move(route_name), std::move(stops), std::move(type)}));;
         };
 
          svg::Color JsonReader::DecodeColorValue(Node &node)
