@@ -80,6 +80,12 @@ void Parser::ParseDistances(TransportCatalogue& catalogue) {
   }
 }
 
+void Parser::LoadRoutQuery(const json::Dict& dict, TransportCatalogue& catalogue) {
+  auto velocity = dict.at("bus_velocity").AsInt();
+  auto wait_time = dict.at("bus_wait_time").AsInt();
+  catalogue.PutRoutingInfo(velocity, wait_time);
+}
+
 } // namespace json_input
 
 namespace json_output {
@@ -128,8 +134,20 @@ void WriteMap(const json::Dict& stop, TransportCatalogue& catalogue, json::Build
   //ans.emplace_back(json::Dict{{"map", out.str()} ,{"request_id", id}});
 
 }
+void WriteRoute(const json::Dict& rout, json::Builder& ans, TransportRouter& router) {
+  auto from  = rout.at("from").AsString();
+  int id = rout.at("id").AsInt();
+  auto to = rout.at("to").AsString();
+  auto info = router.FindRoute(from, to);
+  if (info.count("error_message")) {
+    ans.StartDict().Key("error_message").Value(info["error_message"].AsString()).Key("request_id").Value(id).EndDict();
+    return;
+  }
 
-json::Node LoadOutputQueries(const json::Array& list, TransportCatalogue& catalogue, const json::Dict& settings) {
+  ans.StartDict().Key("items").Value(info["items"].AsArray()).Key("total_time").Value(info["total_time"].AsDouble()).Key("request_id").Value(id).EndDict();
+}
+
+json::Node LoadOutputQueries(const json::Array& list, TransportCatalogue& catalogue, const json::Dict& settings, TransportRouter& router) {
   json::Builder ans;
   ans.StartArray();
   for (const auto& output : list) {
@@ -138,13 +156,18 @@ json::Node LoadOutputQueries(const json::Array& list, TransportCatalogue& catalo
       WriteBus(tmp_dict, catalogue, ans);
     } else if (tmp_dict.at("type").AsString() == "Map") {
       WriteMap(tmp_dict, catalogue, ans, settings);
-    } else {
+    } else if (tmp_dict.at("type").AsString() == "Stop") {
       WriteStop(tmp_dict, catalogue, ans);
+    } else if (tmp_dict.at("type").AsString() == "Route") {
+      WriteRoute(tmp_dict,  ans, router);
     }
   }
   ans.EndArray();
   return ans.Build();
 }
+
+
+
 
 
 
