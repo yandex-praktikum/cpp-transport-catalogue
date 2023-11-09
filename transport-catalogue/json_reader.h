@@ -11,6 +11,7 @@
 #include "map_renderer.h"
 #include "transport_catalogue.h"
 #include "json_builder.h"
+#include "transport_router.h"
 
 namespace json_input {
 
@@ -18,6 +19,8 @@ class Parser {
  public:
 
   void LoadInputQueries(const json::Array & list, TransportCatalogue& catalogue);
+
+  void LoadRoutQuery(const json::Dict& dict, TransportCatalogue& catalogue);
 
 
  private:
@@ -43,7 +46,10 @@ void WriteStop(const json::Dict& stop, TransportCatalogue& catalogue,json::Build
 
 void WriteMap(const json::Dict& stop, TransportCatalogue& catalogue, json::Builder& ans, const json::Dict& settings);
 
-json::Node LoadOutputQueries(const json::Array& list,  TransportCatalogue& catalogue, const json::Dict& settings);
+json::Node LoadOutputQueries(const json::Array& list,  TransportCatalogue& catalogue, const json::Dict& settings,TransportRouter& router );
+
+
+void WriteRoute(const json::Dict& rout, json::Builder& ans, TransportRouter& router);
 
 } // namespace json_output
 
