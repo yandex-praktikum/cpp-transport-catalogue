@@ -80,10 +80,10 @@ void Parser::ParseDistances(TransportCatalogue& catalogue) {
   }
 }
 
-void Parser::LoadRoutQuery(const json::Dict& dict, TransportCatalogue& catalogue) {
+void Parser::LoadRoutQuery(const json::Dict& dict, TransportRouter& router) {
   auto velocity = dict.at("bus_velocity").AsInt();
   auto wait_time = dict.at("bus_wait_time").AsInt();
-  catalogue.PutRoutingInfo(velocity, wait_time);
+  router.PutRoutingInfo(velocity, wait_time);
 }
 
 } // namespace json_input
@@ -165,12 +165,6 @@ json::Node LoadOutputQueries(const json::Array& list, TransportCatalogue& catalo
   ans.EndArray();
   return ans.Build();
 }
-
-
-
-
-
-
 }
 
 // namespace json_output
