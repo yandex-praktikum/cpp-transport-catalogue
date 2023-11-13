@@ -20,7 +20,7 @@ class Parser {
 
   void LoadInputQueries(const json::Array & list, TransportCatalogue& catalogue);
 
-  void LoadRoutQuery(const json::Dict& dict, TransportCatalogue& catalogue);
+  void LoadRoutQuery(const json::Dict& dict, TransportRouter& router);
 
 
  private:
