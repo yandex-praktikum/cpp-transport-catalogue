@@ -32,7 +32,7 @@ void TransportRouter::ProcessCicledRout(const std::vector<TransportCatalogue::St
 
 void TransportRouter::ProcessNonCycleRout(const std::vector<TransportCatalogue::Stop*>& stops,
                                           std::string_view bus_name) {
-  long n = long(stops.size());
+  int n = int(stops.size());
   auto med = (n / 2) + 1;
   std::vector<TransportCatalogue::Stop*> tmp;
   for (int i = 0; i < med; ++i) {
@@ -45,6 +45,7 @@ void TransportRouter::ProcessNonCycleRout(const std::vector<TransportCatalogue::
   }
   ProcessCicledRout(tmp, bus_name);
 }
+
 std::optional<std::pair<size_t, size_t>> TransportRouter::GetIds(std::string_view stop1, std::string_view stop2) {
   std::optional<std::pair<size_t , size_t >> ans;
   if (!stop_to_id.count(stop1)) {
@@ -69,6 +70,8 @@ void TransportRouter::ProcessGraph() {
   router.emplace(graph::Router(graph_.value()));
 }
 
+
+
 json::Dict TransportRouter::FindRoute(std::string_view from, std::string_view to) {
   auto cord = GetIds(from, to);
   if (!cord.has_value()) {
@@ -80,7 +83,6 @@ json::Dict TransportRouter::FindRoute(std::string_view from, std::string_view to
     return json::Dict{{"error_message", "not found"}};
   }
   json::Array items;
-  // auto tmp_edge = catalogue_.GetEdgeFromCatalogue(info->edges[0]);
   auto time = wait_time_;
 
   for (auto edge : info->edges) {
@@ -94,11 +96,10 @@ json::Dict TransportRouter::FindRoute(std::string_view from, std::string_view to
 
     items.back() = json::Dict{{"bus", name}, {"span_count", tmp_edge.stop_counter}, {"time", tmp_edge.weight - time},
                               {"type", "Bus"}};
-
   }
   return json::Dict{{"total_time", info->weight}, {"items", items}};
 }
-void TransportRouter::PutRoutingInfo(int bus_velocity, int wait_time) {
+void TransportRouter::SetRoutingInfo(int bus_velocity, int wait_time) {
   velocity_ = bus_velocity;
   wait_time_ = wait_time;
 }
