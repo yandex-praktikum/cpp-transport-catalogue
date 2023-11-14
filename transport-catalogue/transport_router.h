@@ -12,22 +12,29 @@
 class TransportRouter {
  public:
   explicit TransportRouter(TransportCatalogue& catalogue) :catalogue_(catalogue) {
-    graph_.emplace(graph::DirectedWeightedGraph<double>(catalogue.GetAllStopsSize()));
+    graph_ = (graph::DirectedWeightedGraph<double>(catalogue.GetAllStopsSize()));
   }
+// метод возвращает json::Dict, так как содержит данные разных типов, которые можно собрать за один проход по маршруту
+// разделение его на несколько других методов вызовет ненужное увеличение объема кода, повисит сложность восприятия и дополнительную нагрузку из-за каста данных
+// здесь удобнее использовать готовую структуру, которая позволяет правильно хранить данные разных типов
 
   json::Dict FindRoute(std::string_view from, std::string_view to);
-    void PutRoutingInfo(int bus_velocity, int wait_time);
+
+  void SetRoutingInfo(int bus_velocity, int wait_time);
+
+  void ProcessGraph(); // метод вызывается в main()
+
+
+ private:
+
+
+  std::optional<std::pair<size_t, size_t>> GetIds (std::string_view stop1, std::string_view stop2);
+
 
   void ProcessCicledRout(const std::vector<TransportCatalogue::Stop*>& stops, std::string_view bus_name);
 
   void ProcessNonCycleRout(const std::vector<TransportCatalogue::Stop*>& stops, std::string_view bus_name);
 
-
-  void ProcessGraph();
-
-  std::optional<std::pair<size_t, size_t>> GetIds (std::string_view stop1, std::string_view stop2);
-
- private:
   TransportCatalogue& catalogue_;
   std::optional<graph::Router<double>> router;
 
