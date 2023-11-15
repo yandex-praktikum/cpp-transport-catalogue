@@ -14,11 +14,22 @@ class TransportRouter {
   explicit TransportRouter(TransportCatalogue& catalogue) :catalogue_(catalogue) {
     graph_ = (graph::DirectedWeightedGraph<double>(catalogue.GetAllStopsSize()));
   }
-// метод возвращает json::Dict, так как содержит данные разных типов, которые можно собрать за один проход по маршруту
-// разделение его на несколько других методов вызовет ненужное увеличение объема кода, повисит сложность восприятия и дополнительную нагрузку из-за каста данных
-// здесь удобнее использовать готовую структуру, которая позволяет правильно хранить данные разных типов
 
-  json::Dict FindRoute(std::string_view from, std::string_view to);
+struct RoutInfo {
+    struct RidingBus {
+      std::string bus_name;
+      int span_count;
+      double  time;
+
+    };
+    struct Waiting {
+      std::string stop_name;
+      int time;
+    };
+    std::vector<std::variant<RidingBus, Waiting>> rout_info_;
+    double total_time;
+  };
+  std::optional<RoutInfo> FindRoute(std::string_view from, std::string_view to);
 
   void SetRoutingInfo(int bus_velocity, int wait_time);
 
