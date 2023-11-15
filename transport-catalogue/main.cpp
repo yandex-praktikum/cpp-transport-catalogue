@@ -18,8 +18,7 @@ int main() {
 
   TransportRouter router(catalogue);
   parser.LoadRoutQuery(graph_info, router);
-
-  router.ProcessGraph();
+  
   auto output = root["stat_requests"].AsArray();
   auto rend_info = root["render_settings"].AsDict();
 
