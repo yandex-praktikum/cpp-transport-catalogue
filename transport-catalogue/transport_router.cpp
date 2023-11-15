@@ -72,32 +72,30 @@ void TransportRouter::ProcessGraph() {
 
 
 
-json::Dict TransportRouter::FindRoute(std::string_view from, std::string_view to) {
+std::optional<TransportRouter::RoutInfo> TransportRouter::FindRoute(std::string_view from, std::string_view to) {
   auto cord = GetIds(from, to);
+  std::optional<TransportRouter::RoutInfo> ans;
   if (!cord.has_value()) {
-    return json::Dict{{"error_message", "not found"}};
+    return ans;
   }
   auto [id_from, id_to] = cord.value();
   auto info = router->BuildRoute(id_from, id_to);
   if (!info.has_value()) {
-    return json::Dict{{"error_message", "not found"}};
+    return ans;
   }
-  json::Array items;
   auto time = wait_time_;
-
+  ans = TransportRouter::RoutInfo();
   for (auto edge : info->edges) {
-    items.emplace_back(json::Dict());
     auto tmp_edge = graph_->GetEdge(edge);
     auto stop_from = std::string(id_to_stop.at(tmp_edge.from));
 
-    items.back() = json::Dict{{"stop_name", stop_from}, {"time", time}, {"type", "Wait"}};
+    ans->rout_info_.emplace_back(TransportRouter::RoutInfo::Waiting({stop_from, time}));
     auto name = std::string(tmp_edge.bus_name);
-    items.emplace_back(json::Dict());
 
-    items.back() = json::Dict{{"bus", name}, {"span_count", tmp_edge.stop_counter}, {"time", tmp_edge.weight - time},
-                              {"type", "Bus"}};
+    ans->rout_info_.emplace_back(TransportRouter::RoutInfo::RidingBus {name, tmp_edge.stop_counter,  tmp_edge.weight - time});
   }
-  return json::Dict{{"total_time", info->weight}, {"items", items}};
+  ans->total_time = info->weight;
+  return  ans;
 }
 void TransportRouter::SetRoutingInfo(int bus_velocity, int wait_time) {
   velocity_ = bus_velocity;
