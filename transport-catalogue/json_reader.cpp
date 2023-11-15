@@ -83,7 +83,7 @@ void Parser::ParseDistances(TransportCatalogue& catalogue) {
 void Parser::LoadRoutQuery(const json::Dict& dict, TransportRouter& router) {
   auto velocity = dict.at("bus_velocity").AsInt();
   auto wait_time = dict.at("bus_wait_time").AsInt();
-  router.PutRoutingInfo(velocity, wait_time);
+  router.SetRoutingInfo(velocity, wait_time);
 }
 
 } // namespace json_input
@@ -135,16 +135,31 @@ void WriteMap(const json::Dict& stop, TransportCatalogue& catalogue, json::Build
 
 }
 void WriteRoute(const json::Dict& rout, json::Builder& ans, TransportRouter& router) {
+  using Wait = TransportRouter::RoutInfo::Waiting;
+  using Ride = TransportRouter::RoutInfo::RidingBus;
+
+
   auto from  = rout.at("from").AsString();
   int id = rout.at("id").AsInt();
   auto to = rout.at("to").AsString();
   auto info = router.FindRoute(from, to);
-  if (info.count("error_message")) {
-    ans.StartDict().Key("error_message").Value(info["error_message"].AsString()).Key("request_id").Value(id).EndDict();
+
+  if (!info.has_value()) {
+    ans.StartDict().Key("error_message").Value("not found").Key("request_id").Value(id).EndDict();
     return;
   }
-
-  ans.StartDict().Key("items").Value(info["items"].AsArray()).Key("total_time").Value(info["total_time"].AsDouble()).Key("request_id").Value(id).EndDict();
+  ans.StartDict().Key("total_time").Value(info->total_time).Key("request_id").Value(id).Key("items").StartArray();
+  for (const auto & i : info->rout_info_) {
+    ans.StartDict();
+    if (std::holds_alternative<Wait>(i)) {
+      auto wait_info = std::get<Wait>(i);
+      ans.Key("stop_name").Value(std::string(wait_info.stop_name)).Key("time").Value(wait_info.time).Key("type").Value("Wait").EndDict();
+    } else {
+      auto ride_info = std::get<Ride>(i);
+      ans.Key("bus").Value(std::string(ride_info.bus_name)).Key("time").Value(ride_info.time).Key("type").Value("Bus").Key("span_count").Value(ride_info.span_count).EndDict();
+    }
+  }
+  ans.EndArray().EndDict();
 }
 
 json::Node LoadOutputQueries(const json::Array& list, TransportCatalogue& catalogue, const json::Dict& settings, TransportRouter& router) {
@@ -165,6 +180,12 @@ json::Node LoadOutputQueries(const json::Array& list, TransportCatalogue& catalo
   ans.EndArray();
   return ans.Build();
 }
+
+
+
+
+
+
 }
 
 // namespace json_output
