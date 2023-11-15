@@ -13,6 +13,7 @@ class TransportRouter {
  public:
   explicit TransportRouter(TransportCatalogue& catalogue) :catalogue_(catalogue) {
     graph_ = (graph::DirectedWeightedGraph<double>(catalogue.GetAllStopsSize()));
+    ProcessGraph();
   }
 
 struct RoutInfo {
@@ -33,12 +34,10 @@ struct RoutInfo {
 
   void SetRoutingInfo(int bus_velocity, int wait_time);
 
-  void ProcessGraph(); // метод вызывается в main()
 
 
  private:
-
-
+  void ProcessGraph();
   std::optional<std::pair<size_t, size_t>> GetIds (std::string_view stop1, std::string_view stop2);
 
 
