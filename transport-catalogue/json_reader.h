@@ -1,0 +1,55 @@
+#pragma once
+
+#include <deque>
+#include <string>
+#include <string_view>
+#include <sstream>
+#include <iostream>
+#include <vector>
+#include <fstream>
+
+#include "map_renderer.h"
+#include "transport_catalogue.h"
+#include "json_builder.h"
+#include "transport_router.h"
+
+namespace json_input {
+
+class Parser {
+ public:
+
+  void LoadInputQueries(const json::Array & list, TransportCatalogue& catalogue);
+
+  void LoadRoutQuery(const json::Dict& dict, TransportRouter& router);
+
+
+ private:
+  void ParseQuery(const json::Dict& query);
+  void ParseStopQuery(const json::Dict& stop, TransportCatalogue& catalogue);
+  void ParseBusQuery(const json::Dict& bus, TransportCatalogue& catalogue);
+  void ParseAllQueries(TransportCatalogue& catalogue);
+  void ParseCicleBusQuery(const json::Dict& bus, TransportCatalogue& catalogue);
+  void ParseDistances(TransportCatalogue& catalogue);
+
+  std::deque<json::Node> deque_queries;
+  std::list<std::string> all_queries;
+  std::map<std::string_view , std::vector<std::pair<std::string_view , int>>> dist_;
+};
+
+}
+
+namespace json_output {
+void WriteBus(const json::Dict & bus,  TransportCatalogue& catalogue, json::Builder& ans);
+
+
+void WriteStop(const json::Dict& stop, TransportCatalogue& catalogue,json::Builder& ans);
+
+void WriteMap(const json::Dict& stop, TransportCatalogue& catalogue, json::Builder& ans, const json::Dict& settings);
+
+json::Node LoadOutputQueries(const json::Array& list,  TransportCatalogue& catalogue, const json::Dict& settings,TransportRouter& router );
+
+
+void WriteRoute(const json::Dict& rout, json::Builder& ans, TransportRouter& router);
+
+} // namespace json_output
+
